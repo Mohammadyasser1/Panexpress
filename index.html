@@ -1,0 +1,2960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPR Management System - Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Logo and Title -->
+            <div class="text-center fade-in">
+                <div class="mx-auto h-20 w-20 bg-blue-600 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">SPR Management System</h2>
+                <p class="text-gray-600">Secure access to your logistics dashboard</p>
+                <div class="mt-4 flex items-center justify-center text-sm text-green-600">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></div>
+                    Connected to Live Database
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="bg-white rounded-xl shadow-lg p-8 fade-in">
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" id="username" name="username" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder="Enter your username">
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors pr-12"
+                                placeholder="Enter your password">
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="rememberMe" name="rememberMe" 
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="rememberMe" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                        </div>
+                        <button type="button" onclick="showForgotPassword()" class="text-sm text-blue-600 hover:text-blue-500">
+                            Forgot password?
+                        </button>
+                    </div>
+
+                    <button type="submit" id="loginButton" 
+                        class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium transition-colors">
+                        <span id="loginText">Sign In</span>
+                        <svg id="loginSpinner" class="hidden animate-spin -mr-1 ml-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </form>
+
+
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-sm text-gray-500">
+                <p>© 2024 SPR Management System. Powered by Supabase.</p>
+                <p class="mt-1">Secure • Reliable • Real-time</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden initially) -->
+    <div id="mainApp" class="hidden">
+        <header class="bg-white shadow-lg border-b-4 border-blue-600">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-6">
+                    <div class="flex items-center">
+                        <div class="bg-blue-600 text-white p-3 rounded-lg mr-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">SPR Management System</h1>
+                            <p class="text-sm text-gray-600">🚀 Live Database Connected</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <nav class="flex space-x-6">
+                            <button onclick="showDashboard()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">Dashboard</button>
+                            <button onclick="showRequestForm()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">Request SPR</button>
+                            <button onclick="showViewSprs()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">View SPRs</button>
+                            <button id="dataManagementBtn" onclick="showDataManagement()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors hidden">Data Management</button>
+                        </nav>
+                        <div class="flex items-center space-x-4">
+                            <div id="dataStatus" class="text-sm font-medium">
+                                <div class="flex items-center text-green-600">
+                                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></div>
+                                    Connected to Supabase
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-sm font-bold" id="userInitial">A</span>
+                                </div>
+                                <div class="text-sm">
+                                    <div class="font-medium text-gray-900" id="currentUser">Admin User</div>
+                                    <div class="text-gray-500" id="userRole">Administrator</div>
+                                </div>
+                                <button onclick="logout()" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                    🚪 Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                        <div class="flex space-x-3">
+                            <button id="backupBtn" onclick="dataManager.exportFullBackup()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm hidden">
+                                📥 Backup Data
+                            </button>
+                            <button onclick="dataManager.syncPendingChanges()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                🔄 Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600">
+                            <h3 class="text-lg font-semibold text-blue-900">Total SPRs</h3>
+                            <p class="text-3xl font-bold text-blue-600 mt-2" id="totalSprs">0</p>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-600">
+                            <h3 class="text-lg font-semibold text-green-900">Completed</h3>
+                            <p class="text-3xl font-bold text-green-600 mt-2" id="completedSprs">0</p>
+                        </div>
+                        <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
+                            <h3 class="text-lg font-semibold text-yellow-900">Pending</h3>
+                            <p class="text-3xl font-bold text-yellow-600 mt-2" id="pendingSprs">0</p>
+                        </div>
+                        <div class="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-600">
+                            <h3 class="text-lg font-semibold text-purple-900">Database Status</h3>
+                            <p class="text-3xl font-bold text-purple-600 mt-2" id="dbStatus">🟢 Live</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <div class="text-gray-500 text-center py-4">Loading recent activity...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request SPR Form -->
+            <div id="requestForm" class="block">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+                        <h2 class="text-2xl font-bold text-white">Request SPR Form</h2>
+                        <p class="text-blue-100 mt-2">Fill out the form below to create a new SPR request</p>
+                    </div>
+
+                    <form id="sprForm" class="p-8 space-y-8">
+                        <!-- Section 1: Basic Information -->
+                        <div class="border-b border-gray-200 pb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <span class="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">1</span>
+                                Basic Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="sprNumber" class="block text-sm font-medium text-gray-700 mb-2">SPR Number *</label>
+                                    <input type="text" id="sprNumber" name="sprNumber" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Enter SPR number">
+                                </div>
+                                <div>
+                                    <label for="awbNumber" class="block text-sm font-medium text-gray-700 mb-2">AWB Number *</label>
+                                    <input type="text" id="awbNumber" name="awbNumber" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Enter AWB number">
+                                </div>
+                                <div>
+                                    <label for="deliveryType" class="block text-sm font-medium text-gray-700 mb-2">Delivery Type *</label>
+                                    <select id="deliveryType" name="deliveryType" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">Select delivery type</option>
+                                        <option value="Normal Delivery">Normal Delivery</option>
+                                        <option value="Same Day Delivery">Same Day Delivery</option>
+                                        <option value="Return">Return</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Shipment Delivery Information -->
+                        <div class="border-b border-gray-200 pb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <span class="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">2</span>
+                                Shipment Delivery Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="dataSheet" class="block text-sm font-medium text-gray-700 mb-2">Data Sheet</label>
+                                    <input type="file" id="dataSheet" name="dataSheet" accept=".pdf,.doc,.docx,.xlsx,.xls"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+                                </div>
+                                <div>
+                                    <label for="qNumber" class="block text-sm font-medium text-gray-700 mb-2">Q Number</label>
+                                    <input type="number" id="qNumber" name="qNumber"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Enter Q number">
+                                </div>
+                                <div>
+                                    <label for="itemNames" class="block text-sm font-medium text-gray-700 mb-2">Item Names *</label>
+                                    <div class="relative">
+                                        <div id="itemNames" contenteditable="true" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-h-[120px] bg-white"
+                                            data-placeholder="Enter item names with formatting..."
+                                            style="outline: none;">
+                                        </div>
+                                        <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                            <div class="flex space-x-2">
+                                                <button type="button" onclick="formatText('bold')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-bold">B</button>
+                                                <button type="button" onclick="formatText('italic')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 italic">I</button>
+                                                <button type="button" onclick="formatText('underline')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 underline">U</button>
+                                                <button type="button" onclick="formatText('insertUnorderedList')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700">• List</button>
+                                                <button type="button" onclick="formatText('insertOrderedList')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700">1. List</button>
+                                            </div>
+                                            <span>Rich text formatting available</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Shipment Location Information -->
+                        <div class="border-b border-gray-200 pb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <span class="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">3</span>
+                                Shipment Location Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="fromHub" class="block text-sm font-medium text-gray-700 mb-2">From Hub *</label>
+                                    <select id="fromHub" name="fromHub" required onchange="updateHubEmail()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">Select hub</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="hubEmail" class="block text-sm font-medium text-gray-700 mb-2">Hub Email</label>
+                                    <input type="email" id="hubEmail" name="hubEmail" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                        placeholder="Auto-filled based on hub selection">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label for="engCode" class="block text-sm font-medium text-gray-700 mb-2">Engineer Code *</label>
+                                    <select id="engCode" name="engCode" required onchange="updateEngInfo()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">Select engineer code</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="engName" class="block text-sm font-medium text-gray-700 mb-2">Engineer Name</label>
+                                    <input type="text" id="engName" name="engName" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                        placeholder="Auto-filled based on code">
+                                </div>
+                                <div>
+                                    <label for="engMail" class="block text-sm font-medium text-gray-700 mb-2">Engineer Email</label>
+                                    <input type="email" id="engMail" name="engMail" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                        placeholder="Auto-filled based on code">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                                    <textarea id="location" name="location" rows="3"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Enter location information"></textarea>
+                                </div>
+                                <div>
+                                    <label for="fullAddress" class="block text-sm font-medium text-gray-700 mb-2">Full Address</label>
+                                    <textarea id="fullAddress" name="fullAddress" rows="3"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        placeholder="Enter full address"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Operation Information -->
+                        <div class="border-b border-gray-200 pb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <span class="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">4</span>
+                                Operation Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="requestDateTime" class="block text-sm font-medium text-gray-700 mb-2">Request Date & Time *</label>
+                                    <input type="datetime-local" id="requestDateTime" name="requestDateTime" required
+                                        onchange="calculateSLA()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="plannedDateTime" class="block text-sm font-medium text-gray-700 mb-2">Planned Date & Time *</label>
+                                    <input type="datetime-local" id="plannedDateTime" name="plannedDateTime" required
+                                        onchange="calculateSLA()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="sla" class="block text-sm font-medium text-gray-700 mb-2">SLA</label>
+                                    <input type="text" id="sla" name="sla" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                        placeholder="Auto-calculated">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 5: Shipment Status -->
+                        <div class="pb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <span class="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">5</span>
+                                Shipment Status
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="shipmentStatus" class="block text-sm font-medium text-gray-700 mb-2">Shipment Status *</label>
+                                    <select id="shipmentStatus" name="shipmentStatus" required onchange="updateDelayReasonAndCalculateTime()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">Select status</option>
+                                        <option value="Postponed">Postponed</option>
+                                        <option value="Delivered on Time">Delivered on Time</option>
+                                        <option value="Delayed">Delayed</option>
+                                        <option value="After Closing">After Closing</option>
+                                        <option value="Available at another Stock">Available at another Stock</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="actualDateTime" class="block text-sm font-medium text-gray-700 mb-2">Actual Delivery Date & Time</label>
+                                    <input type="datetime-local" id="actualDateTime" name="actualDateTime"
+                                        onchange="updateDelayReasonAndCalculateTime()" oninput="updateDelayReasonAndCalculateTime()"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="deliveryTime" class="block text-sm font-medium text-gray-700 mb-2">Delivery Time</label>
+                                    <input type="text" id="deliveryTime" name="deliveryTime" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                        placeholder="Auto-calculated">
+                                </div>
+                            </div>
+                            
+                            <!-- Delay Reason Field (always visible) -->
+                            <div id="delayReasonSection" class="mt-6">
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div>
+                                        <label for="delayReason" class="block text-sm font-medium text-gray-700 mb-2">Delay Reason</label>
+                                        <input type="text" id="delayReason" name="delayReason" readonly
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                            placeholder="Auto-filled based on shipment status">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-between items-center">
+                            <button type="button" onclick="cancelForm()" 
+                                class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors">
+                                ← Cancel & Go Back
+                            </button>
+                            <div class="flex space-x-4">
+                                <button type="button" onclick="resetForm()" 
+                                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">
+                                    Reset Form
+                                </button>
+                                <button type="submit" id="submitButton"
+                                    class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-lg">
+                                    <span id="submitText">Submit SPR Request</span>
+                                    <svg id="submitSpinner" class="hidden animate-spin -mr-1 ml-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View SPRs Section -->
+            <div id="viewSprs" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">All SPR Requests</h2>
+                                <p class="text-green-100 mt-2">View, search, and manage all submitted SPR requests</p>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button id="exportSprsBtn" onclick="dataManager.exportToCSV('sprs')" class="px-4 py-2 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-colors font-medium hidden">
+                                    📊 Export SPRs
+                                </button>
+                                <button id="importSprsBtn" onclick="showImportModal()" class="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium hidden">
+                                    📥 Import SPRs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
+                        <!-- Search and Filter Controls -->
+                        <div class="mb-6 flex flex-col md:flex-row gap-4">
+                            <div class="flex-1">
+                                <input type="text" id="searchSprs" placeholder="Search by SPR Number, AWB, or Engineer Name..." 
+                                    onkeyup="filterSprs()"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="statusFilter" onchange="filterSprs()" 
+                                    class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                                <select id="deliveryTypeFilter" onchange="filterSprs()" 
+                                    class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                    <option value="">All Types</option>
+                                    <option value="Normal Delivery">Normal Delivery</option>
+                                    <option value="Same Day Delivery">Same Day Delivery</option>
+                                    <option value="Return">Return</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- SPR List -->
+                        <div id="sprList" class="space-y-4">
+                            <!-- SPR items will be populated here -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="emptyState" class="text-center py-12 hidden">
+                            <div class="text-gray-400 mb-4">
+                                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No SPR Requests Found</h3>
+                            <p class="text-gray-500 mb-4">No SPR requests match your current filters or none have been created yet.</p>
+                            <button onclick="showRequestForm()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                Create First SPR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="dataManagement" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Data Management & Live Database</h2>
+                    
+                    <!-- Database Status -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                        <h3 class="text-lg font-semibold text-green-900 mb-4">🚀 Live Database Status</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-2">✅ Connected to Supabase:</h4>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Real-time database operations</li>
+                                    <li>• Automatic data synchronization</li>
+                                    <li>• Cloud backup & recovery</li>
+                                    <li>• Multi-user support ready</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-2">🔧 Database Info:</h4>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Project: mtenuffilkhexpufgtdl</li>
+                                    <li>• Region: Auto-selected</li>
+                                    <li>• Status: <span class="text-green-600 font-medium">🟢 Online</span></li>
+                                    <li>• Last sync: <span id="lastSyncTime">Just now</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Export & Import -->
+                    <div class="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                        <h3 class="text-lg font-semibold text-blue-900 mb-4">📊 Data Export & Import</h3>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                            <button onclick="dataManager.exportToCSV('sprs')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                📋 Export SPRs
+                            </button>
+                            <button onclick="dataManager.exportToCSV('engineers')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                👥 Export Engineers
+                            </button>
+                            <button onclick="dataManager.exportToCSV('hubs')" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                                🏢 Export Hubs
+                            </button>
+                            <button onclick="dataManager.exportFullBackup()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                💾 Full Backup
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label for="engineerCsv" class="block text-sm font-medium text-gray-700 mb-2">Import Engineers CSV</label>
+                                <input type="file" id="engineerCsv" accept=".csv" onchange="importEngineersCSV(event)"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                            </div>
+                            <div>
+                                <label for="hubCsv" class="block text-sm font-medium text-gray-700 mb-2">Import Hubs CSV</label>
+                                <input type="file" id="hubCsv" accept=".csv" onchange="importHubsCSV(event)"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                            </div>
+                            <div>
+                                <label for="backupRestore" class="block text-sm font-medium text-gray-700 mb-2">Restore Full Backup</label>
+                                <input type="file" id="backupRestore" accept=".json" onchange="handleBackupRestore(event)"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Data Overview -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">👥 Engineer Database</h3>
+                                <span class="text-sm text-gray-600" id="engineerCount">Loading...</span>
+                            </div>
+                            <div class="space-y-3 max-h-96 overflow-y-auto" id="engineerList">
+                                <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                                    Loading engineers from database...
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">🏢 Hub Information</h3>
+                                <span class="text-sm text-gray-600" id="hubCount">Loading...</span>
+                            </div>
+                            <div class="space-y-3 max-h-96 overflow-y-auto" id="hubList">
+                                <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                                    Loading hubs from database...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database Operations -->
+                    <div class="mt-8 p-6 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <h3 class="text-lg font-semibold text-yellow-900 mb-4">🔧 Database Operations</h3>
+                        <div class="flex space-x-4">
+                            <button onclick="dataManager.refreshAllData()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                                🔄 Refresh All Data
+                            </button>
+                            <button onclick="downloadSampleCSV()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                📄 Download Sample CSV
+                            </button>
+                            <button onclick="testDatabaseConnection()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                🔍 Test Connection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Import SPRs Modal -->
+    <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4 w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Import SPRs</h3>
+                <button onclick="closeImportModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="sprImportFile" class="block text-sm font-medium text-gray-700 mb-2">Select CSV File</label>
+                <input type="file" id="sprImportFile" accept=".csv" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+            </div>
+            <div class="text-sm text-gray-600 mb-4">
+                <p class="font-medium mb-2">📋 CSV Format Requirements:</p>
+                <ul class="text-xs space-y-1 ml-4">
+                    <li>• <strong>Required:</strong> SPR Number, AWB Number</li>
+                    <li>• <strong>Optional:</strong> Delivery Type, Q Number, Item Names, Hub, Engineer, etc.</li>
+                    <li>• <strong>Flexible headers:</strong> "SPR Number" or "spr_number" or "SPR"</li>
+                    <li>• <strong>Date formats:</strong> MM/DD/YYYY, YYYY-MM-DD, or ISO format</li>
+                </ul>
+                <p class="mt-2 text-green-600">✅ All SPRs will be added. Duplicates allowed in live database.</p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeImportModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button onclick="processSprImport()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Import SPRs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===========================================
+        // DATABASE AUTHENTICATION SYSTEM
+        // ===========================================
+        
+        let currentUser = null;
+        let sessionTimeout = null;
+        let authUsers = {}; // Will be loaded from database
+
+        // Load users from database and check for existing session
+        window.addEventListener('load', async function() {
+            // Load users from database first
+            await loadUsersFromDatabase();
+            
+            const savedUser = localStorage.getItem('sprCurrentUser');
+            const savedTime = localStorage.getItem('sprLoginTime');
+            
+            if (savedUser && savedTime) {
+                const loginTime = new Date(savedTime);
+                const now = new Date();
+                const hoursSinceLogin = (now - loginTime) / (1000 * 60 * 60);
+                
+                // Auto-logout after 8 hours
+                if (hoursSinceLogin < 8) {
+                    currentUser = JSON.parse(savedUser);
+                    showMainApp();
+                    startSessionTimeout();
+                } else {
+                    localStorage.removeItem('sprCurrentUser');
+                    localStorage.removeItem('sprLoginTime');
+                }
+            }
+        });
+
+        // Load users from Supabase database
+        async function loadUsersFromDatabase() {
+            try {
+                console.log('🔐 Loading users from database...');
+                
+                const { data: users, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('username');
+                
+                if (error) {
+                    console.error('Failed to load users:', error);
+                    // Fallback to hardcoded users if database fails
+                    authUsers = {
+                        'admin': {
+                            password: 'admin123',
+                            role: 'Administrator',
+                            name: 'Admin User',
+                            permissions: ['create', 'read', 'update', 'delete', 'export', 'manage']
+                        },
+                        'manager': {
+                            password: 'manager123',
+                            role: 'Manager',
+                            name: 'Manager User',
+                            permissions: ['create', 'read', 'update', 'export']
+                        },
+                        'user': {
+                            password: 'user123',
+                            role: 'User',
+                            name: 'Standard User',
+                            permissions: ['create', 'read']
+                        }
+                    };
+                    showMessage('Using fallback authentication. Check database connection.', 'warning');
+                    return;
+                }
+                
+                // Convert database users to auth format
+                authUsers = {};
+                users.forEach(user => {
+                    authUsers[user.username] = {
+                        id: user.id,
+                        password: user.password_hash, // In production, this should be hashed
+                        role: user.role,
+                        name: user.full_name,
+                        email: user.email,
+                        permissions: user.permissions || [],
+                        createdAt: user.created_at,
+                        lastLogin: user.last_login
+                    };
+                });
+                
+                console.log(`✅ Loaded ${users.length} users from database`);
+                updateLoginCredentialsDisplay();
+                updateQuickLoginButtons();
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showMessage('Failed to load user data. Using fallback authentication.', 'error');
+            }
+        }
+
+        // Add new user to database
+        async function addUser(userData) {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([{
+                        username: userData.username,
+                        password_hash: userData.password, // In production, hash this
+                        full_name: userData.fullName,
+                        email: userData.email,
+                        role: userData.role,
+                        permissions: userData.permissions,
+                        is_active: true
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) {
+                    if (error.code === '23505') {
+                        throw new Error('Username already exists');
+                    }
+                    throw error;
+                }
+                
+                // Add to local auth users
+                authUsers[userData.username] = {
+                    id: data.id,
+                    password: userData.password,
+                    role: userData.role,
+                    name: userData.fullName,
+                    email: userData.email,
+                    permissions: userData.permissions,
+                    createdAt: data.created_at
+                };
+                
+                updateLoginCredentialsDisplay();
+                updateQuickLoginButtons();
+                
+                return data;
+                
+            } catch (error) {
+                console.error('Failed to add user:', error);
+                throw error;
+            }
+        }
+
+        // Update the demo credentials display (removed for security)
+        function updateLoginCredentialsDisplay() {
+            // Credentials display removed for security
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            authenticateUser(username, password, rememberMe);
+        });
+
+        async function authenticateUser(username, password, rememberMe = false) {
+            const loginButton = document.getElementById('loginButton');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            // Show loading state
+            loginButton.disabled = true;
+            loginText.textContent = 'Authenticating...';
+            loginSpinner.classList.remove('hidden');
+            
+            try {
+                // Check against database users
+                if (authUsers[username] && authUsers[username].password === password) {
+                    // Update last login in database
+                    await updateLastLogin(authUsers[username].id);
+                    
+                    // Successful login
+                    currentUser = {
+                        username: username,
+                        ...authUsers[username]
+                    };
+                    
+                    // Save session
+                    if (rememberMe) {
+                        localStorage.setItem('sprCurrentUser', JSON.stringify(currentUser));
+                        localStorage.setItem('sprLoginTime', new Date().toISOString());
+                    } else {
+                        sessionStorage.setItem('sprCurrentUser', JSON.stringify(currentUser));
+                    }
+                    
+                    // Success state
+                    loginButton.classList.remove('bg-blue-600');
+                    loginButton.classList.add('bg-green-600');
+                    loginText.textContent = 'Login Successful!';
+                    loginSpinner.classList.add('hidden');
+                    
+                    // Show main app after delay
+                    setTimeout(() => {
+                        showMainApp();
+                        startSessionTimeout();
+                    }, 1000);
+                    
+                } else {
+                    throw new Error('Invalid credentials');
+                }
+                
+            } catch (error) {
+                // Failed login
+                loginButton.disabled = false;
+                loginButton.classList.remove('bg-blue-600');
+                loginButton.classList.add('bg-red-600');
+                loginText.textContent = 'Invalid Credentials';
+                loginSpinner.classList.add('hidden');
+                
+                // Shake animation
+                document.querySelector('.max-w-md').style.animation = 'shake 0.5s ease-in-out';
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    loginButton.classList.remove('bg-red-600');
+                    loginButton.classList.add('bg-blue-600');
+                    loginText.textContent = 'Sign In';
+                    document.querySelector('.max-w-md').style.animation = '';
+                }, 2000);
+                
+                showMessage('Invalid username or password. Please try again.', 'error');
+            }
+        }
+
+        // Update last login timestamp in database
+        async function updateLastLogin(userId) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('id', userId);
+                
+                if (error) {
+                    console.error('Failed to update last login:', error);
+                }
+            } catch (error) {
+                console.error('Error updating last login:', error);
+            }
+        }
+
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            authenticateUser(username, password, false);
+        }
+
+        // Update quick login buttons (removed for security)
+        function updateQuickLoginButtons() {
+            // Quick login buttons removed for security
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update user info in header
+            document.getElementById('currentUser').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.role;
+            document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+            
+            // Show/hide admin-only features
+            updateAdminFeatures();
+            
+            // Initialize the app
+            initializeApp();
+            
+            showMessage(`Welcome back, ${currentUser.name}!`, 'success');
+        }
+
+        function updateAdminFeatures() {
+            const isAdmin = currentUser && currentUser.role === 'Administrator';
+            
+            // Show/hide Data Management navigation
+            const dataManagementBtn = document.getElementById('dataManagementBtn');
+            if (dataManagementBtn) {
+                dataManagementBtn.classList.toggle('hidden', !isAdmin);
+            }
+            
+            // Show/hide export/import buttons
+            const backupBtn = document.getElementById('backupBtn');
+            const exportSprsBtn = document.getElementById('exportSprsBtn');
+            const importSprsBtn = document.getElementById('importSprsBtn');
+            
+            if (backupBtn) backupBtn.classList.toggle('hidden', !isAdmin);
+            if (exportSprsBtn) exportSprsBtn.classList.toggle('hidden', !isAdmin);
+            if (importSprsBtn) importSprsBtn.classList.toggle('hidden', !isAdmin);
+        }
+
+        function logout() {
+            // Clear session
+            localStorage.removeItem('sprCurrentUser');
+            localStorage.removeItem('sprLoginTime');
+            sessionStorage.removeItem('sprCurrentUser');
+            
+            // Clear timeout
+            if (sessionTimeout) {
+                clearTimeout(sessionTimeout);
+            }
+            
+            // Reset user
+            currentUser = null;
+            
+            // Show login screen
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            
+            // Reset login form
+            document.getElementById('loginForm').reset();
+            
+            // Reset login button to original state
+            const loginButton = document.getElementById('loginButton');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            if (loginButton && loginText && loginSpinner) {
+                loginButton.disabled = false;
+                loginButton.classList.remove('bg-green-600', 'bg-red-600');
+                loginButton.classList.add('bg-blue-600');
+                loginText.textContent = 'Sign In';
+                loginSpinner.classList.add('hidden');
+            }
+            
+            showMessage('You have been logged out successfully.', 'success');
+        }
+
+        function startSessionTimeout() {
+            // Auto-logout after 8 hours of inactivity
+            if (sessionTimeout) {
+                clearTimeout(sessionTimeout);
+            }
+            
+            sessionTimeout = setTimeout(() => {
+                showMessage('Session expired. Please log in again.', 'warning');
+                logout();
+            }, 8 * 60 * 60 * 1000); // 8 hours
+        }
+
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-1.414-1.414M14.12 14.12l1.414 1.414M14.12 14.12L15.536 15.536M14.12 14.12l1.414-1.414"></path>';
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            }
+        }
+
+        function showForgotPassword() {
+            showMessage('Contact your system administrator to reset your password.', 'info');
+        }
+
+        // Add shake animation CSS
+        const shakeCSS = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        const style = document.createElement('style');
+        style.textContent = shakeCSS;
+        document.head.appendChild(style);
+
+        // ===========================================
+        // SUPABASE CONFIGURATION & INITIALIZATION
+        // ===========================================
+        
+        const SUPABASE_URL = 'https://mtenuffilkhexpufgtdl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10ZW51ZmZpbGtoZXhwdWZndGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1NzQxMjMsImV4cCI6MjA3NjE1MDEyM30.Y3oRMH3RKUqEzIfdVz51eB2wpuoi33HwKL74uJ-QIKE';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ===========================================
+        // ENHANCED DATA MANAGER - SUPABASE INTEGRATED
+        // ===========================================
+        
+        class DataManager {
+            constructor() {
+                this.engineerData = {};
+                this.hubData = {};
+                this.sprRequests = [];
+                this.isOnline = navigator.onLine;
+                this.syncQueue = [];
+                
+                this.initializeNetworkDetection();
+            }
+
+            async initializeDatabase() {
+                try {
+                    console.log('🚀 Initializing Supabase connection...');
+                    
+                    // Test connection
+                    const { data, error } = await supabase.from('engineers').select('count', { count: 'exact', head: true });
+                    
+                    if (error) {
+                        console.error('Database connection failed:', error);
+                        this.showErrorMessage('Failed to connect to database. Using offline mode.');
+                        return;
+                    }
+                    
+                    console.log('✅ Database connected successfully');
+                    this.showSuccessMessage('Connected to live database!');
+                    
+                    // Load initial data
+                    await this.loadAllData();
+                    this.updateRecentActivity('Connected to live database');
+                    
+                } catch (error) {
+                    console.error('Database initialization error:', error);
+                    this.showErrorMessage('Database connection failed. Check your internet connection.');
+                }
+            }
+
+            async loadAllData() {
+                try {
+                    // Load engineers
+                    const { data: engineers, error: engError } = await supabase
+                        .from('engineers')
+                        .select('*')
+                        .order('code');
+                    
+                    if (engError) throw engError;
+                    
+                    // Convert to object format for compatibility
+                    this.engineerData = {};
+                    engineers.forEach(eng => {
+                        this.engineerData[eng.code] = {
+                            name: eng.name,
+                            email: eng.email,
+                            id: eng.id,
+                            createdAt: eng.created_at
+                        };
+                    });
+
+                    // Load hubs
+                    const { data: hubs, error: hubError } = await supabase
+                        .from('hubs')
+                        .select('*')
+                        .order('name');
+                    
+                    if (hubError) throw hubError;
+                    
+                    // Convert to object format for compatibility
+                    this.hubData = {};
+                    hubs.forEach(hub => {
+                        this.hubData[hub.name] = {
+                            email: hub.email,
+                            id: hub.id,
+                            createdAt: hub.created_at
+                        };
+                    });
+
+                    // Load SPR requests
+                    const { data: sprs, error: sprError } = await supabase
+                        .from('spr_requests')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (sprError) throw sprError;
+                    
+                    // Convert database format to app format
+                    this.sprRequests = sprs.map(spr => ({
+                        id: spr.id,
+                        sprNumber: spr.spr_number,
+                        awbNumber: spr.awb_number,
+                        deliveryType: spr.delivery_type,
+                        qNumber: spr.q_number,
+                        itemNames: spr.item_names,
+                        fromHub: spr.from_hub,
+                        hubEmail: spr.hub_email,
+                        engCode: spr.eng_code,
+                        engName: spr.eng_name,
+                        engMail: spr.eng_mail,
+                        location: spr.location,
+                        fullAddress: spr.full_address,
+                        requestDateTime: spr.request_datetime,
+                        plannedDateTime: spr.planned_datetime,
+                        sla: spr.sla,
+                        shipmentStatus: spr.shipment_status,
+                        delayReason: spr.delay_reason,
+                        actualDateTime: spr.actual_datetime,
+                        deliveryTime: spr.delivery_time,
+                        status: spr.status,
+                        version: spr.version,
+                        createdAt: spr.created_at,
+                        updatedAt: spr.updated_at
+                    }));
+
+                    console.log(`✅ Loaded ${engineers.length} engineers, ${hubs.length} hubs, ${sprs.length} SPRs`);
+                    this.refreshAllDisplays();
+                    this.showDataStatus();
+                    
+                } catch (error) {
+                    console.error('Failed to load data:', error);
+                    this.showErrorMessage('Failed to load data from database');
+                }
+            }
+
+            // ===========================================
+            // SPR DATA OPERATIONS
+            // ===========================================
+            
+            async createSPR(sprData) {
+                try {
+                    // Helper function to safely convert datetime
+                    const convertDateTime = (dateTimeStr) => {
+                        if (!dateTimeStr || dateTimeStr.trim() === '') return null;
+                        try {
+                            const date = new Date(dateTimeStr);
+                            return isNaN(date.getTime()) ? null : date.toISOString();
+                        } catch (error) {
+                            console.warn('Invalid datetime:', dateTimeStr);
+                            return null;
+                        }
+                    };
+
+                    // Convert app format to database format with proper validation
+                    const dbSprData = {
+                        spr_number: sprData.sprNumber,
+                        awb_number: sprData.awbNumber,
+                        delivery_type: sprData.deliveryType,
+                        q_number: sprData.qNumber ? parseInt(sprData.qNumber) : null,
+                        item_names: sprData.itemNames || null,
+                        from_hub: sprData.fromHub,
+                        hub_email: sprData.hubEmail || null,
+                        eng_code: sprData.engCode,
+                        eng_name: sprData.engName || null,
+                        eng_mail: sprData.engMail || null,
+                        location: sprData.location || null,
+                        full_address: sprData.fullAddress || null,
+                        request_datetime: convertDateTime(sprData.requestDateTime),
+                        planned_datetime: convertDateTime(sprData.plannedDateTime),
+                        sla: sprData.sla || null,
+                        shipment_status: sprData.shipmentStatus || null,
+                        delay_reason: sprData.delayReason || null,
+                        actual_datetime: convertDateTime(sprData.actualDateTime),
+                        delivery_time: sprData.deliveryTime || null,
+                        status: sprData.status || 'pending'
+                    };
+
+                    const { data, error } = await supabase
+                        .from('spr_requests')
+                        .insert([dbSprData])
+                        .select()
+                        .single();
+                    
+                    if (error) {
+                        if (error.code === '23505') { // Unique constraint violation
+                            throw new Error('SPR number already exists. Please use a different SPR number.');
+                        }
+                        throw error;
+                    }
+                    
+                    // Convert back to app format and add to local array
+                    const newSpr = {
+                        id: data.id,
+                        sprNumber: data.spr_number,
+                        awbNumber: data.awb_number,
+                        deliveryType: data.delivery_type,
+                        qNumber: data.q_number,
+                        itemNames: data.item_names,
+                        fromHub: data.from_hub,
+                        hubEmail: data.hub_email,
+                        engCode: data.eng_code,
+                        engName: data.eng_name,
+                        engMail: data.eng_mail,
+                        location: data.location,
+                        fullAddress: data.full_address,
+                        requestDateTime: data.request_datetime,
+                        plannedDateTime: data.planned_datetime,
+                        sla: data.sla,
+                        shipmentStatus: data.shipment_status,
+                        delayReason: data.delay_reason,
+                        actualDateTime: data.actual_datetime,
+                        deliveryTime: data.delivery_time,
+                        status: data.status,
+                        version: data.version,
+                        createdAt: data.created_at,
+                        updatedAt: data.updated_at
+                    };
+                    
+                    this.sprRequests.unshift(newSpr); // Add to beginning of array
+                    this.showSuccessMessage('SPR created successfully in database!');
+                    this.updateRecentActivity(`Created SPR #${sprData.sprNumber}`);
+                    return newSpr;
+                    
+                } catch (error) {
+                    this.handleError('Failed to create SPR', error);
+                    throw error;
+                }
+            }
+
+            async updateSPR(id, updates) {
+                try {
+                    // Helper function to safely convert datetime
+                    const convertDateTime = (dateTimeStr) => {
+                        if (!dateTimeStr || dateTimeStr.trim() === '') return null;
+                        try {
+                            const date = new Date(dateTimeStr);
+                            return isNaN(date.getTime()) ? null : date.toISOString();
+                        } catch (error) {
+                            console.warn('Invalid datetime:', dateTimeStr);
+                            return null;
+                        }
+                    };
+
+                    // Convert app format to database format for updates
+                    const dbUpdates = {
+                        spr_number: updates.sprNumber,
+                        awb_number: updates.awbNumber,
+                        delivery_type: updates.deliveryType,
+                        q_number: updates.qNumber ? parseInt(updates.qNumber) : null,
+                        item_names: updates.itemNames || null,
+                        from_hub: updates.fromHub,
+                        hub_email: updates.hubEmail || null,
+                        eng_code: updates.engCode,
+                        eng_name: updates.engName || null,
+                        eng_mail: updates.engMail || null,
+                        location: updates.location || null,
+                        full_address: updates.fullAddress || null,
+                        request_datetime: convertDateTime(updates.requestDateTime),
+                        planned_datetime: convertDateTime(updates.plannedDateTime),
+                        sla: updates.sla || null,
+                        shipment_status: updates.shipmentStatus || null,
+                        delay_reason: updates.delayReason || null,
+                        actual_datetime: convertDateTime(updates.actualDateTime),
+                        delivery_time: updates.deliveryTime || null,
+                        status: updates.status || 'pending'
+                    };
+
+                    const { data, error } = await supabase
+                        .from('spr_requests')
+                        .update(dbUpdates)
+                        .eq('id', id)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    // Update local array with converted data
+                    const sprIndex = this.sprRequests.findIndex(spr => spr.id === id);
+                    if (sprIndex !== -1) {
+                        this.sprRequests[sprIndex] = {
+                            id: data.id,
+                            sprNumber: data.spr_number,
+                            awbNumber: data.awb_number,
+                            deliveryType: data.delivery_type,
+                            qNumber: data.q_number,
+                            itemNames: data.item_names,
+                            fromHub: data.from_hub,
+                            hubEmail: data.hub_email,
+                            engCode: data.eng_code,
+                            engName: data.eng_name,
+                            engMail: data.eng_mail,
+                            location: data.location,
+                            fullAddress: data.full_address,
+                            requestDateTime: data.request_datetime,
+                            plannedDateTime: data.planned_datetime,
+                            sla: data.sla,
+                            shipmentStatus: data.shipment_status,
+                            delayReason: data.delay_reason,
+                            actualDateTime: data.actual_datetime,
+                            deliveryTime: data.delivery_time,
+                            status: data.status,
+                            version: data.version,
+                            createdAt: data.created_at,
+                            updatedAt: data.updated_at
+                        };
+                    }
+                    
+                    this.showSuccessMessage('SPR updated successfully in database!');
+                    this.updateRecentActivity(`Updated SPR #${this.sprRequests[sprIndex]?.sprNumber}`);
+                    return this.sprRequests[sprIndex];
+                    
+                } catch (error) {
+                    this.handleError('Failed to update SPR', error);
+                    throw error;
+                }
+            }
+
+            async deleteSPR(id) {
+                try {
+                    const spr = this.sprRequests.find(s => s.id === id);
+                    if (!spr) throw new Error('SPR not found');
+
+                    const { error } = await supabase
+                        .from('spr_requests')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                    
+                    // Remove from local array
+                    this.sprRequests = this.sprRequests.filter(spr => spr.id !== id);
+                    
+                    this.showSuccessMessage('SPR deleted successfully from database!');
+                    this.updateRecentActivity(`Deleted SPR #${spr.sprNumber}`);
+                    
+                } catch (error) {
+                    this.handleError('Failed to delete SPR', error);
+                    throw error;
+                }
+            }
+
+            // ===========================================
+            // ENGINEER & HUB OPERATIONS
+            // ===========================================
+            
+            async addEngineer(code, name, email) {
+                try {
+                    const { data, error } = await supabase
+                        .from('engineers')
+                        .insert([{ code, name, email }])
+                        .select()
+                        .single();
+                    
+                    if (error) {
+                        if (error.code === '23505') {
+                            throw new Error('Engineer code already exists');
+                        }
+                        throw error;
+                    }
+                    
+                    this.engineerData[code] = {
+                        name,
+                        email,
+                        id: data.id,
+                        createdAt: data.created_at
+                    };
+                    
+                    this.updateRecentActivity(`Added engineer ${code}`);
+                    return data;
+                    
+                } catch (error) {
+                    this.handleError('Failed to add engineer', error);
+                    throw error;
+                }
+            }
+
+            async addHub(name, email) {
+                try {
+                    const { data, error } = await supabase
+                        .from('hubs')
+                        .insert([{ name, email }])
+                        .select()
+                        .single();
+                    
+                    if (error) {
+                        if (error.code === '23505') {
+                            throw new Error('Hub name already exists');
+                        }
+                        throw error;
+                    }
+                    
+                    this.hubData[name] = {
+                        email,
+                        id: data.id,
+                        createdAt: data.created_at
+                    };
+                    
+                    this.updateRecentActivity(`Added hub ${name}`);
+                    return data;
+                    
+                } catch (error) {
+                    this.handleError('Failed to add hub', error);
+                    throw error;
+                }
+            }
+
+            // ===========================================
+            // DATA EXPORT & BACKUP
+            // ===========================================
+            
+            exportToCSV(dataType = 'sprs') {
+                try {
+                    let csvContent = '';
+                    let filename = '';
+                    
+                    if (dataType === 'sprs') {
+                        csvContent = this.generateSPRsCSV();
+                        filename = `SPR_Export_${this.formatDateForFilename()}.csv`;
+                    } else if (dataType === 'engineers') {
+                        csvContent = this.generateEngineersCSV();
+                        filename = `Engineers_Export_${this.formatDateForFilename()}.csv`;
+                    } else if (dataType === 'hubs') {
+                        csvContent = this.generateHubsCSV();
+                        filename = `Hubs_Export_${this.formatDateForFilename()}.csv`;
+                    }
+                    
+                    this.downloadFile(csvContent, filename, 'text/csv');
+                    this.showSuccessMessage(`${dataType.toUpperCase()} data exported successfully!`);
+                    this.updateRecentActivity(`Exported ${dataType} data`);
+                } catch (error) {
+                    this.handleError('Failed to export data', error);
+                }
+            }
+
+            exportFullBackup() {
+                try {
+                    const backupData = {
+                        version: '2.0',
+                        exportDate: new Date().toISOString(),
+                        source: 'supabase',
+                        data: {
+                            sprRequests: this.sprRequests,
+                            engineerData: this.engineerData,
+                            hubData: this.hubData
+                        },
+                        metadata: {
+                            totalSPRs: this.sprRequests.length,
+                            totalEngineers: Object.keys(this.engineerData).length,
+                            totalHubs: Object.keys(this.hubData).length,
+                            databaseUrl: SUPABASE_URL
+                        }
+                    };
+                    
+                    const jsonContent = JSON.stringify(backupData, null, 2);
+                    const filename = `SPR_Database_Backup_${this.formatDateForFilename()}.json`;
+                    
+                    this.downloadFile(jsonContent, filename, 'application/json');
+                    this.showSuccessMessage('Database backup created successfully!');
+                    this.updateRecentActivity('Created database backup');
+                } catch (error) {
+                    this.handleError('Failed to create backup', error);
+                }
+            }
+
+            // ===========================================
+            // UTILITY & HELPER FUNCTIONS
+            // ===========================================
+            
+            async refreshAllData() {
+                try {
+                    this.showMessage('Refreshing data from database...', 'info');
+                    await this.loadAllData();
+                    this.showSuccessMessage('Data refreshed successfully!');
+                    this.updateRecentActivity('Refreshed all data from database');
+                    document.getElementById('lastSyncTime').textContent = new Date().toLocaleTimeString();
+                } catch (error) {
+                    this.handleError('Failed to refresh data', error);
+                }
+            }
+
+            async syncPendingChanges() {
+                // For live database, this just refreshes data
+                await this.refreshAllData();
+            }
+
+            initializeNetworkDetection() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.showSuccessMessage('Connection restored! Refreshing data...');
+                    this.refreshAllData();
+                    this.showDataStatus();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.showWarningMessage('Connection lost. Some features may be limited.');
+                    this.showDataStatus();
+                });
+            }
+
+            showDataStatus() {
+                const statusElement = document.getElementById('dataStatus');
+                if (!statusElement) return;
+                
+                const statusText = this.isOnline ? 'Connected to Supabase' : 'Offline - Limited functionality';
+                const statusColor = this.isOnline ? 'text-green-600' : 'text-red-600';
+                const dotColor = this.isOnline ? 'bg-green-500' : 'bg-red-500';
+                
+                statusElement.innerHTML = `
+                    <div class="flex items-center ${statusColor}">
+                        <div class="w-2 h-2 rounded-full ${dotColor} mr-2 pulse-dot"></div>
+                        ${statusText}
+                    </div>
+                `;
+            }
+
+            updateRecentActivity(activity) {
+                const recentActivityElement = document.getElementById('recentActivity');
+                if (!recentActivityElement) return;
+
+                const activityItem = document.createElement('div');
+                activityItem.className = 'flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200';
+                activityItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
+                        <span class="text-sm text-gray-700">${activity}</span>
+                    </div>
+                    <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+                `;
+
+                // Clear loading message if present
+                if (recentActivityElement.firstChild && recentActivityElement.firstChild.textContent.includes('Loading')) {
+                    recentActivityElement.innerHTML = '';
+                }
+                
+                recentActivityElement.insertBefore(activityItem, recentActivityElement.firstChild);
+                
+                // Keep only last 5 activities
+                while (recentActivityElement.children.length > 5) {
+                    recentActivityElement.removeChild(recentActivityElement.lastChild);
+                }
+            }
+
+            // CSV Generation Methods
+            generateSPRsCSV() {
+                const headers = [
+                    'SPR Number', 'AWB Number', 'Delivery Type', 'Q Number', 'Item Names',
+                    'From Hub', 'Hub Email', 'Engineer Code', 'Engineer Name', 'Engineer Email',
+                    'Location', 'Full Address', 'Request DateTime', 'Planned DateTime', 'SLA',
+                    'Shipment Status', 'Delay Reason', 'Actual DateTime', 'Delivery Time',
+                    'Status', 'Created At', 'Updated At', 'Version'
+                ];
+                
+                const rows = this.sprRequests.map(spr => [
+                    spr.sprNumber, spr.awbNumber, spr.deliveryType, spr.qNumber, spr.itemNames,
+                    spr.fromHub, spr.hubEmail, spr.engCode, spr.engName, spr.engMail,
+                    spr.location, spr.fullAddress, spr.requestDateTime, spr.plannedDateTime, spr.sla,
+                    spr.shipmentStatus, spr.delayReason, spr.actualDateTime, spr.deliveryTime,
+                    spr.status, spr.createdAt, spr.updatedAt, spr.version
+                ]);
+                
+                return [headers, ...rows].map(row => 
+                    row.map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(',')
+                ).join('\n');
+            }
+
+            generateEngineersCSV() {
+                const headers = ['Code', 'Name', 'Email', 'Created At'];
+                const rows = Object.entries(this.engineerData).map(([code, data]) => [
+                    code, data.name, data.email, data.createdAt || ''
+                ]);
+                
+                return [headers, ...rows].map(row => 
+                    row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(',')
+                ).join('\n');
+            }
+
+            generateHubsCSV() {
+                const headers = ['Name', 'Email', 'Created At'];
+                const rows = Object.entries(this.hubData).map(([name, data]) => [
+                    name, data.email, data.createdAt || ''
+                ]);
+                
+                return [headers, ...rows].map(row => 
+                    row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(',')
+                ).join('\n');
+            }
+
+            // Utility methods
+            formatDateForFilename() {
+                return new Date().toISOString().split('T')[0].replace(/-/g, '');
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            refreshAllDisplays() {
+                if (typeof updateEngineerDropdown === 'function') updateEngineerDropdown();
+                if (typeof updateHubDropdown === 'function') updateHubDropdown();
+                if (typeof displayEngineers === 'function') displayEngineers();
+                if (typeof displayHubs === 'function') displayHubs();
+                if (typeof displaySprs === 'function') displaySprs();
+                if (typeof updateDashboardStats === 'function') updateDashboardStats();
+            }
+
+            showSuccessMessage(message) {
+                this.showMessage(message, 'success');
+            }
+
+            showWarningMessage(message) {
+                this.showMessage(message, 'warning');
+            }
+
+            showErrorMessage(message) {
+                this.showMessage(message, 'error');
+            }
+
+            showMessage(message, type = 'success') {
+                const colors = {
+                    success: 'bg-green-500',
+                    warning: 'bg-yellow-500',
+                    error: 'bg-red-500',
+                    info: 'bg-blue-500'
+                };
+                
+                const icons = {
+                    success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                    warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>',
+                    error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                    info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+                };
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-in`;
+                messageDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            ${icons[type]}
+                        </svg>
+                        ${message}
+                    </div>
+                `;
+                document.body.appendChild(messageDiv);
+
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, type === 'error' ? 5000 : 3000);
+            }
+
+            handleError(message, error) {
+                console.error(message, error);
+                this.showErrorMessage(`${message}: ${error.message}`);
+                this.updateRecentActivity(`Error: ${message}`);
+            }
+        }
+
+        // Initialize Enhanced Data Manager with Supabase
+        let dataManager;
+
+        // Legacy compatibility
+        let engineerData = {};
+        let hubData = {};
+        let sprRequests = [];
+
+        function initializeApp() {
+            dataManager = new DataManager();
+            dataManager.initializeDatabase();
+            
+            // Update legacy references
+            engineerData = dataManager.engineerData;
+            hubData = dataManager.hubData;
+            sprRequests = dataManager.sprRequests;
+            
+            // Initialize displays
+            setTimeout(() => {
+                updateDashboardStats();
+                displayEngineers();
+                displayHubs();
+                updateEngineerDropdown();
+                updateHubDropdown();
+            }, 2000);
+        }
+
+        // ===========================================
+        // NAVIGATION FUNCTIONS
+        // ===========================================
+        
+        function showDashboard() {
+            hideAllSections();
+            document.getElementById('dashboard').classList.remove('hidden');
+            updateDashboardStats();
+            updateNavigation('dashboard');
+        }
+
+        function showRequestForm() {
+            hideAllSections();
+            document.getElementById('requestForm').classList.remove('hidden');
+            updateNavigation('request');
+            
+            // Set default date times after form is visible
+            setTimeout(setDefaultDateTimes, 100);
+        }
+
+        // Set current date and time as default when form loads
+        function setDefaultDateTimes() {
+            const now = new Date();
+            const currentDateTime = now.toISOString().slice(0, 16);
+            
+            const requestField = document.getElementById('requestDateTime');
+            const plannedField = document.getElementById('plannedDateTime');
+            
+            if (requestField && !requestField.value) {
+                requestField.value = currentDateTime;
+            }
+            
+            if (plannedField && !plannedField.value) {
+                // Set planned time to 2 hours from now as default
+                const plannedTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+                plannedField.value = plannedTime.toISOString().slice(0, 16);
+            }
+            
+            // Calculate SLA if both fields have values
+            calculateSLA();
+        }
+
+        function showViewSprs() {
+            hideAllSections();
+            document.getElementById('viewSprs').classList.remove('hidden');
+            updateNavigation('viewsprs');
+            displaySprs();
+        }
+
+        function showDataManagement() {
+            hideAllSections();
+            document.getElementById('dataManagement').classList.remove('hidden');
+            updateNavigation('data');
+            displayEngineers();
+            displayHubs();
+        }
+
+        function hideAllSections() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('requestForm').classList.add('hidden');
+            document.getElementById('viewSprs').classList.add('hidden');
+            document.getElementById('dataManagement').classList.add('hidden');
+        }
+
+        function updateNavigation(active) {
+            const buttons = document.querySelectorAll('nav button');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600');
+            });
+            
+            if (active === 'request') {
+                buttons[1].classList.add('bg-blue-600', 'text-white');
+                buttons[1].classList.remove('text-gray-600');
+            }
+        }
+
+        // ===========================================
+        // RICH TEXT EDITOR FUNCTIONS
+        // ===========================================
+        
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            document.getElementById('itemNames').focus();
+        }
+
+        // Add placeholder styling for rich text editor
+        document.addEventListener('DOMContentLoaded', function() {
+            const itemNamesEditor = document.getElementById('itemNames');
+            if (itemNamesEditor) {
+                // Handle placeholder
+                itemNamesEditor.addEventListener('focus', function() {
+                    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+                        this.innerHTML = '';
+                    }
+                });
+                
+                itemNamesEditor.addEventListener('blur', function() {
+                    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+                        this.innerHTML = '';
+                    }
+                });
+                
+                // Add placeholder styling
+                const style = document.createElement('style');
+                style.textContent = `
+                    #itemNames:empty:before {
+                        content: attr(data-placeholder);
+                        color: #9CA3AF;
+                        font-style: italic;
+                    }
+                    #itemNames:focus:empty:before {
+                        content: '';
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+
+        // ===========================================
+        // FORM FUNCTIONS
+        // ===========================================
+        
+        function updateHubEmail() {
+            const hubSelect = document.getElementById('fromHub');
+            const hubEmailInput = document.getElementById('hubEmail');
+            
+            if (hubSelect.value && dataManager.hubData[hubSelect.value]) {
+                hubEmailInput.value = dataManager.hubData[hubSelect.value].email;
+            } else {
+                hubEmailInput.value = '';
+            }
+        }
+
+        function updateEngInfo() {
+            const engCodeSelect = document.getElementById('engCode');
+            const engNameInput = document.getElementById('engName');
+            const engMailInput = document.getElementById('engMail');
+            
+            const selectedCode = engCodeSelect.value;
+            
+            if (selectedCode && dataManager.engineerData[selectedCode]) {
+                engNameInput.value = dataManager.engineerData[selectedCode].name;
+                engMailInput.value = dataManager.engineerData[selectedCode].email;
+            } else {
+                engNameInput.value = '';
+                engMailInput.value = '';
+            }
+        }
+
+        function toggleDelayReason() {
+            const shipmentStatus = document.getElementById('shipmentStatus').value;
+            const delayReasonField = document.getElementById('delayReason');
+            
+            const statusesRequiringReason = ['Postponed', 'After Closing', 'Available at another Stock', 'Delayed'];
+            
+            if (statusesRequiringReason.includes(shipmentStatus)) {
+                delayReasonField.value = shipmentStatus;
+                delayReasonField.classList.remove('bg-gray-50');
+                delayReasonField.classList.add('bg-yellow-50', 'border-yellow-300');
+            } else if (shipmentStatus === 'Delivered on Time') {
+                delayReasonField.value = 'No Delay - Delivered on Time';
+                delayReasonField.classList.remove('bg-gray-50', 'bg-yellow-50', 'border-yellow-300');
+                delayReasonField.classList.add('bg-green-50', 'border-green-300');
+            } else {
+                delayReasonField.value = '';
+                delayReasonField.classList.remove('bg-yellow-50', 'border-yellow-300', 'bg-green-50', 'border-green-300');
+                delayReasonField.classList.add('bg-gray-50');
+            }
+        }
+
+        function calculateSLA() {
+            const requestDateTime = document.getElementById('requestDateTime').value;
+            const plannedDateTime = document.getElementById('plannedDateTime').value;
+            const slaField = document.getElementById('sla');
+            
+            if (requestDateTime && plannedDateTime) {
+                const requestDate = new Date(requestDateTime);
+                const plannedDate = new Date(plannedDateTime);
+                const diffMs = plannedDate - requestDate;
+                
+                if (diffMs >= 0) {
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    slaField.value = `${hours} Hours ${minutes} Mins`;
+                } else {
+                    slaField.value = 'Invalid: Planned time is before request time';
+                }
+            } else {
+                slaField.value = '';
+            }
+        }
+
+        function calculateDeliveryTime() {
+            const requestDateTime = document.getElementById('requestDateTime').value;
+            const actualDateTime = document.getElementById('actualDateTime').value;
+            const deliveryTimeField = document.getElementById('deliveryTime');
+            
+            if (requestDateTime && actualDateTime) {
+                const requestDate = new Date(requestDateTime);
+                const actualDate = new Date(actualDateTime);
+                const diffMs = actualDate - requestDate;
+                
+                if (diffMs >= 0) {
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    deliveryTimeField.value = `${hours} Hours ${minutes} Mins`;
+                } else {
+                    deliveryTimeField.value = 'Invalid: Actual time is before request time';
+                }
+            } else {
+                deliveryTimeField.value = '';
+            }
+        }
+
+        function updateDelayReasonAndCalculateTime() {
+            // Update delay reason based on shipment status
+            toggleDelayReason();
+            
+            // Recalculate delivery time if actual date is set
+            calculateDeliveryTime();
+        }
+
+        function resetForm() {
+            document.getElementById('sprForm').reset();
+            document.getElementById('hubEmail').value = '';
+            document.getElementById('engName').value = '';
+            document.getElementById('engMail').value = '';
+            document.getElementById('sla').value = '';
+            document.getElementById('deliveryTime').value = '';
+            document.getElementById('delayReason').value = '';
+            document.getElementById('itemNames').innerHTML = '';
+        }
+
+        function cancelForm() {
+            // Reset form and go back to dashboard or view SPRs
+            resetForm();
+            
+            // Clear edit mode if active
+            const form = document.getElementById('sprForm');
+            form.removeAttribute('data-edit-id');
+            
+            // Reset form title
+            const formTitle = document.querySelector('#requestForm h2');
+            if (formTitle) {
+                formTitle.textContent = 'Request SPR Form';
+            }
+            
+            // Reset button text
+            const submitText = document.getElementById('submitText');
+            if (submitText) {
+                submitText.textContent = 'Submit SPR Request';
+            }
+            
+            // Go to dashboard or view SPRs based on user preference
+            if (dataManager && dataManager.sprRequests.length > 0) {
+                showViewSprs();
+                showMessage('Form cancelled. Returned to SPR list.', 'info');
+            } else {
+                showDashboard();
+                showMessage('Form cancelled. Returned to dashboard.', 'info');
+            }
+        }
+
+        // ===========================================
+        // FORM SUBMISSION
+        // ===========================================
+        
+        document.getElementById('sprForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('submitButton');
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const editId = this.getAttribute('data-edit-id');
+            const isEditing = !!editId;
+            
+            try {
+                // Show loading state
+                submitButton.disabled = true;
+                submitText.textContent = isEditing ? 'Updating SPR...' : 'Creating SPR...';
+                submitSpinner.classList.remove('hidden');
+                
+                const formData = new FormData(this);
+                const sprData = {
+                    sprNumber: formData.get('sprNumber'),
+                    awbNumber: formData.get('awbNumber'),
+                    deliveryType: formData.get('deliveryType'),
+                    qNumber: formData.get('qNumber'),
+                    itemNames: document.getElementById('itemNames').innerHTML || '',
+                    fromHub: formData.get('fromHub'),
+                    hubEmail: formData.get('hubEmail'),
+                    engCode: formData.get('engCode'),
+                    engName: formData.get('engName'),
+                    engMail: formData.get('engMail'),
+                    location: formData.get('location'),
+                    fullAddress: formData.get('fullAddress'),
+                    requestDateTime: formData.get('requestDateTime'),
+                    plannedDateTime: formData.get('plannedDateTime'),
+                    sla: formData.get('sla'),
+                    shipmentStatus: formData.get('shipmentStatus'),
+                    delayReason: formData.get('delayReason') || '',
+                    actualDateTime: formData.get('actualDateTime'),
+                    deliveryTime: formData.get('deliveryTime'),
+                    status: isEditing ? (formData.get('status') || 'pending') : 'pending'
+                };
+
+                // Validate required fields (mandatory inputs only)
+                const requiredFields = {
+                    'sprNumber': 'SPR Number',
+                    'awbNumber': 'AWB Number', 
+                    'deliveryType': 'Delivery Type',
+                    'fromHub': 'From Hub',
+                    'engCode': 'Engineer Code',
+                    'itemNames': 'Item Names',
+                    'requestDateTime': 'Request Date & Time',
+                    'plannedDateTime': 'Planned Date & Time',
+                    'shipmentStatus': 'Shipment Status'
+                };
+                
+                const missingFields = [];
+                Object.keys(requiredFields).forEach(field => {
+                    if (!sprData[field] || sprData[field].toString().trim() === '') {
+                        missingFields.push(requiredFields[field]);
+                    }
+                });
+                
+                if (missingFields.length > 0) {
+                    throw new Error(`Please fill in required fields: ${missingFields.join(', ')}`);
+                }
+
+                // Validate SPR Number format
+                if (!sprData.sprNumber || sprData.sprNumber.trim() === '') {
+                    throw new Error('SPR Number is required');
+                }
+                
+                // Validate AWB Number
+                if (!sprData.awbNumber || sprData.awbNumber.trim() === '') {
+                    throw new Error('AWB Number is required');
+                }
+
+                // Create or update SPR in database
+                if (isEditing) {
+                    await dataManager.updateSPR(editId, sprData);
+                } else {
+                    await dataManager.createSPR(sprData);
+                }
+                
+                // Update local references for compatibility
+                sprRequests = dataManager.sprRequests;
+                
+                // Success state
+                submitButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                submitButton.classList.add('bg-green-600');
+                submitText.textContent = isEditing ? 'SPR Updated Successfully!' : 'SPR Created Successfully!';
+                submitSpinner.classList.add('hidden');
+                
+                // Reset after delay
+                setTimeout(() => {
+                    updateDashboardStats();
+                    resetForm();
+                    
+                    // Reset form title and button
+                    const formTitle = document.querySelector('#requestForm h2');
+                    if (formTitle) {
+                        formTitle.textContent = 'Request SPR Form';
+                    }
+                    
+                    // Clear edit mode
+                    this.removeAttribute('data-edit-id');
+                    
+                    // Reset button state
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('bg-green-600');
+                    submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    submitText.textContent = 'Submit SPR Request';
+                    
+                    // Go back to view SPRs if we were editing
+                    if (isEditing) {
+                        showViewSprs();
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                // Error state
+                submitButton.disabled = false;
+                submitButton.classList.remove('bg-blue-600');
+                submitButton.classList.add('bg-red-600');
+                submitText.textContent = 'Error - Try Again';
+                submitSpinner.classList.add('hidden');
+                
+                dataManager.handleError(isEditing ? 'Failed to update SPR' : 'Failed to submit SPR', error);
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    submitButton.classList.remove('bg-red-600');
+                    submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    submitText.textContent = isEditing ? 'Update SPR' : 'Submit SPR Request';
+                }, 3000);
+            }
+        });
+
+        // ===========================================
+        // DATA DISPLAY FUNCTIONS
+        // ===========================================
+        
+        function updateDashboardStats() {
+            if (!dataManager) return;
+            document.getElementById('totalSprs').textContent = dataManager.sprRequests.length;
+            document.getElementById('completedSprs').textContent = dataManager.sprRequests.filter(spr => spr.status === 'completed').length;
+            document.getElementById('pendingSprs').textContent = dataManager.sprRequests.filter(spr => spr.status === 'pending').length;
+        }
+
+        function displaySprs() {
+            if (!dataManager) return;
+            
+            const sprList = document.getElementById('sprList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (dataManager.sprRequests.length === 0) {
+                sprList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            const sprHtml = dataManager.sprRequests.map(spr => `
+                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow" data-spr-id="${spr.id}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">SPR #${spr.sprNumber}</h3>
+                            <p class="text-sm text-gray-600">AWB: ${spr.awbNumber}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${spr.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                ${spr.status === 'completed' ? 'Completed' : 'Pending'}
+                            </span>
+                            <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Live DB</span>
+                            ${currentUser && currentUser.role === 'Administrator' ? `
+                            <button onclick="deleteSpr('${spr.id}')" class="text-red-600 hover:text-red-800 p-1" title="Delete SPR (Admin Only)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            ` : `
+                            <span class="text-gray-400 p-1" title="Delete restricted to administrators">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </span>
+                            `}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium text-gray-700">Delivery Type:</span>
+                            <span class="text-gray-600">${spr.deliveryType}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">From Hub:</span>
+                            <span class="text-gray-600">${spr.fromHub}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Engineer:</span>
+                            <span class="text-gray-600">${spr.engName} (${spr.engCode})</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Q Number:</span>
+                            <span class="text-gray-600">${spr.qNumber}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Items:</span>
+                            <div class="text-gray-600 inline-block" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${spr.itemNames || 'Not specified'}</div>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Status:</span>
+                            <span class="text-gray-600">${spr.shipmentStatus || 'Not set'}</span>
+                        </div>
+                    </div>
+                    
+                    ${spr.delayReason ? `
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="text-sm">
+                            <span class="font-medium text-yellow-800">Delay Reason:</span>
+                            <p class="text-yellow-700 mt-1">${spr.delayReason}</p>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xs text-gray-500">Created: ${formatDateTime(spr.createdAt)} | Version: ${spr.version || 1}</span>
+                        <div class="flex space-x-2">
+                            <button onclick="editSpr('${spr.id}')" 
+                                class="px-4 py-2 text-sm bg-blue-100 text-blue-800 hover:bg-blue-200 rounded-lg transition-colors">
+                                ✏️ Edit
+                            </button>
+                            <button onclick="toggleSprStatus('${spr.id}')" 
+                                class="px-4 py-2 text-sm rounded-lg transition-colors ${spr.status === 'completed' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}">
+                                Mark as ${spr.status === 'completed' ? 'Pending' : 'Completed'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            sprList.innerHTML = sprHtml;
+        }
+
+        function displayEngineers() {
+            if (!dataManager) return;
+            
+            const engineerList = document.getElementById('engineerList');
+            const engineerCount = document.getElementById('engineerCount');
+            
+            const count = Object.keys(dataManager.engineerData).length;
+            engineerCount.textContent = `${count} engineer${count !== 1 ? 's' : ''}`;
+            
+            if (count === 0) {
+                engineerList.innerHTML = '<div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">Loading engineers from database...</div>';
+                return;
+            }
+            
+            engineerList.innerHTML = Object.entries(dataManager.engineerData).map(([code, data]) => `
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${code} - ${data.name}</div>
+                            <div class="text-sm text-gray-600">${data.email}</div>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Live DB</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayHubs() {
+            if (!dataManager) return;
+            
+            const hubList = document.getElementById('hubList');
+            const hubCount = document.getElementById('hubCount');
+            
+            const count = Object.keys(dataManager.hubData).length;
+            hubCount.textContent = `${count} hub${count !== 1 ? 's' : ''}`;
+            
+            if (count === 0) {
+                hubList.innerHTML = '<div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">Loading hubs from database...</div>';
+                return;
+            }
+            
+            hubList.innerHTML = Object.entries(dataManager.hubData).map(([name, data]) => `
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${name} Hub</div>
+                            <div class="text-sm text-gray-600">${data.email}</div>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Live DB</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateEngineerDropdown() {
+            if (!dataManager) return;
+            
+            const engCodeSelect = document.getElementById('engCode');
+            const currentValue = engCodeSelect.value;
+            
+            engCodeSelect.innerHTML = '<option value="">Select engineer code</option>';
+            
+            Object.keys(dataManager.engineerData).forEach(code => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = code;
+                engCodeSelect.appendChild(option);
+            });
+            
+            if (currentValue && dataManager.engineerData[currentValue]) {
+                engCodeSelect.value = currentValue;
+            }
+        }
+
+        function updateHubDropdown() {
+            if (!dataManager) return;
+            
+            const hubSelect = document.getElementById('fromHub');
+            const currentValue = hubSelect.value;
+            
+            hubSelect.innerHTML = '<option value="">Select hub</option>';
+            
+            Object.keys(dataManager.hubData).forEach(hubName => {
+                const option = document.createElement('option');
+                option.value = hubName;
+                option.textContent = hubName;
+                hubSelect.appendChild(option);
+            });
+            
+            if (currentValue && dataManager.hubData[currentValue]) {
+                hubSelect.value = currentValue;
+            }
+        }
+
+        // ===========================================
+        // UTILITY FUNCTIONS
+        // ===========================================
+        
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return 'Not set';
+            const date = new Date(dateTimeString);
+            return date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDateTimeForInput(dateTimeString) {
+            if (!dateTimeString) return '';
+            const date = new Date(dateTimeString);
+            if (isNaN(date.getTime())) return '';
+            
+            // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function filterSprs() {
+            if (!dataManager) return;
+            
+            const searchTerm = document.getElementById('searchSprs').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const deliveryTypeFilter = document.getElementById('deliveryTypeFilter').value;
+            
+            const sprCards = document.querySelectorAll('[data-spr-id]');
+            let visibleCount = 0;
+            
+            sprCards.forEach(card => {
+                const sprId = card.getAttribute('data-spr-id');
+                const spr = dataManager.sprRequests.find(s => s.id === sprId);
+                
+                if (!spr) return;
+                
+                const matchesSearch = !searchTerm || 
+                    spr.sprNumber.toLowerCase().includes(searchTerm) ||
+                    spr.awbNumber.toLowerCase().includes(searchTerm) ||
+                    spr.engName.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || spr.status === statusFilter;
+                const matchesDeliveryType = !deliveryTypeFilter || spr.deliveryType === deliveryTypeFilter;
+                
+                if (matchesSearch && matchesStatus && matchesDeliveryType) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            const emptyState = document.getElementById('emptyState');
+            if (visibleCount === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+
+        async function toggleSprStatus(sprId) {
+            if (!dataManager) return;
+            
+            try {
+                const spr = dataManager.sprRequests.find(s => s.id === sprId);
+                if (!spr) return;
+
+                const newStatus = spr.status === 'completed' ? 'pending' : 'completed';
+                await dataManager.updateSPR(sprId, { status: newStatus });
+                
+                // Update references
+                sprRequests = dataManager.sprRequests;
+                
+                displaySprs();
+                updateDashboardStats();
+                dataManager.showSuccessMessage('SPR status updated in database!');
+            } catch (error) {
+                dataManager.handleError('Failed to update SPR status', error);
+            }
+        }
+
+        async function editSpr(sprId) {
+            if (!dataManager) return;
+            
+            const spr = dataManager.sprRequests.find(s => s.id === sprId);
+            if (!spr) return;
+            
+            // Switch to request form and populate with existing data
+            showRequestForm();
+            
+            // Populate form fields with existing SPR data
+            setTimeout(() => {
+                document.getElementById('sprNumber').value = spr.sprNumber || '';
+                document.getElementById('awbNumber').value = spr.awbNumber || '';
+                document.getElementById('deliveryType').value = spr.deliveryType || '';
+                document.getElementById('qNumber').value = spr.qNumber || '';
+                document.getElementById('itemNames').innerHTML = spr.itemNames || '';
+                document.getElementById('fromHub').value = spr.fromHub || '';
+                document.getElementById('hubEmail').value = spr.hubEmail || '';
+                document.getElementById('engCode').value = spr.engCode || '';
+                document.getElementById('engName').value = spr.engName || '';
+                document.getElementById('engMail').value = spr.engMail || '';
+                document.getElementById('location').value = spr.location || '';
+                document.getElementById('fullAddress').value = spr.fullAddress || '';
+                
+                // Format datetime values for input fields
+                if (spr.requestDateTime) {
+                    document.getElementById('requestDateTime').value = formatDateTimeForInput(spr.requestDateTime);
+                }
+                if (spr.plannedDateTime) {
+                    document.getElementById('plannedDateTime').value = formatDateTimeForInput(spr.plannedDateTime);
+                }
+                if (spr.actualDateTime) {
+                    document.getElementById('actualDateTime').value = formatDateTimeForInput(spr.actualDateTime);
+                }
+                
+                document.getElementById('sla').value = spr.sla || '';
+                document.getElementById('shipmentStatus').value = spr.shipmentStatus || '';
+                document.getElementById('delayReason').value = spr.delayReason || '';
+                document.getElementById('deliveryTime').value = spr.deliveryTime || '';
+                
+                // Change form title and button text to indicate editing
+                const formTitle = document.querySelector('#requestForm h2');
+                if (formTitle) {
+                    formTitle.textContent = `Edit SPR #${spr.sprNumber}`;
+                }
+                
+                const submitButton = document.getElementById('submitButton');
+                const submitText = document.getElementById('submitText');
+                if (submitText) {
+                    submitText.textContent = 'Update SPR';
+                }
+                
+                // Store the SPR ID for updating
+                document.getElementById('sprForm').setAttribute('data-edit-id', sprId);
+                
+                // Show success message
+                dataManager.showMessage(`Editing SPR #${spr.sprNumber}. Make your changes and click Update.`, 'info');
+                
+            }, 100);
+        }
+
+        async function deleteSpr(sprId) {
+            if (!dataManager) return;
+            
+            // Check if user is administrator
+            if (!currentUser || currentUser.role !== 'Administrator') {
+                showMessage('Access denied. Only administrators can delete SPRs.', 'error');
+                return;
+            }
+            
+            // Create custom confirmation modal instead of browser confirm
+            const confirmDelete = await showCustomConfirm('Are you sure you want to delete this SPR? This action cannot be undone.');
+            
+            if (confirmDelete) {
+                try {
+                    await dataManager.deleteSPR(sprId);
+                    
+                    // Update references
+                    sprRequests = dataManager.sprRequests;
+                    
+                    displaySprs();
+                    updateDashboardStats();
+                } catch (error) {
+                    dataManager.handleError('Failed to delete SPR', error);
+                }
+            }
+        }
+
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
+                        <p class="text-gray-600 mb-6">${message}</p>
+                        <div class="flex justify-end space-x-3">
+                            <button onclick="this.closest('.fixed').remove(); window.confirmResolve(false)" 
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button onclick="this.closest('.fixed').remove(); window.confirmResolve(true)" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                window.confirmResolve = resolve;
+            });
+        }
+
+        async function testDatabaseConnection() {
+            if (!dataManager) return;
+            
+            try {
+                dataManager.showMessage('Testing database connection...', 'info');
+                
+                const { data, error } = await supabase.from('engineers').select('count', { count: 'exact', head: true });
+                
+                if (error) throw error;
+                
+                dataManager.showSuccessMessage('Database connection test successful! ✅');
+                dataManager.updateRecentActivity('Database connection test passed');
+                
+            } catch (error) {
+                dataManager.handleError('Database connection test failed', error);
+            }
+        }
+
+        function downloadSampleCSV() {
+            if (!dataManager) return;
+            
+            const engineerCSV = 'Code,Name,Email\nENG006,Amira Saeed,amira.saeed@panexpress.com\nENG007,Khaled Nour,khaled.nour@panexpress.com\nENG008,Yasmin Farouk,yasmin.farouk@panexpress.com';
+            const hubCSV = 'Name,Email\nZamalek,zamalek@panexpress.com\nDowntown,downtown@panexpress.com\nGiza,giza@panexpress.com';
+            
+            // Download Engineers CSV
+            dataManager.downloadFile(engineerCSV, 'sample_engineers.csv', 'text/csv');
+            
+            // Download Hubs CSV after delay
+            setTimeout(() => {
+                dataManager.downloadFile(hubCSV, 'sample_hubs.csv', 'text/csv');
+            }, 500);
+            
+            dataManager.showSuccessMessage('Sample CSV files downloaded!');
+        }
+
+        // CSV Import functions with full database integration
+        async function importEngineersCSV(event) {
+            if (!dataManager) return;
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                dataManager.showMessage('Importing engineers from CSV...', 'info');
+                const csvText = await file.text();
+                const rows = csvText.split('\n').filter(row => row.trim());
+                
+                if (rows.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                let imported = 0;
+                let errors = [];
+                
+                for (let i = 1; i < rows.length; i++) {
+                    try {
+                        const values = rows[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                        const code = values[0];
+                        const name = values[1];
+                        const email = values[2];
+                        
+                        if (code && name && email) {
+                            await dataManager.addEngineer(code, name, email);
+                            imported++;
+                        }
+                    } catch (error) {
+                        errors.push(`Row ${i + 1}: ${error.message}`);
+                    }
+                }
+                
+                await dataManager.loadAllData();
+                updateEngineerDropdown();
+                displayEngineers();
+                
+                if (errors.length > 0) {
+                    dataManager.showWarningMessage(`Imported ${imported} engineers with ${errors.length} errors. Check console for details.`);
+                    console.warn('Import errors:', errors);
+                } else {
+                    dataManager.showSuccessMessage(`Successfully imported ${imported} engineers!`);
+                }
+                
+            } catch (error) {
+                dataManager.handleError('Failed to import engineers CSV', error);
+            }
+            
+            event.target.value = '';
+        }
+
+        async function importHubsCSV(event) {
+            if (!dataManager) return;
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                dataManager.showMessage('Importing hubs from CSV...', 'info');
+                const csvText = await file.text();
+                const rows = csvText.split('\n').filter(row => row.trim());
+                
+                if (rows.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                let imported = 0;
+                let errors = [];
+                
+                for (let i = 1; i < rows.length; i++) {
+                    try {
+                        const values = rows[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                        const name = values[0];
+                        const email = values[1];
+                        
+                        if (name && email) {
+                            await dataManager.addHub(name, email);
+                            imported++;
+                        }
+                    } catch (error) {
+                        errors.push(`Row ${i + 1}: ${error.message}`);
+                    }
+                }
+                
+                await dataManager.loadAllData();
+                updateHubDropdown();
+                displayHubs();
+                
+                if (errors.length > 0) {
+                    dataManager.showWarningMessage(`Imported ${imported} hubs with ${errors.length} errors. Check console for details.`);
+                    console.warn('Import errors:', errors);
+                } else {
+                    dataManager.showSuccessMessage(`Successfully imported ${imported} hubs!`);
+                }
+                
+            } catch (error) {
+                dataManager.handleError('Failed to import hubs CSV', error);
+            }
+            
+            event.target.value = '';
+        }
+
+        async function handleBackupRestore(event) {
+            if (!dataManager) return;
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                dataManager.showMessage('Restoring backup...', 'info');
+                const jsonText = await file.text();
+                const backupData = JSON.parse(jsonText);
+                
+                if (!backupData.data) {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                // This would require careful implementation to avoid data conflicts
+                dataManager.showWarningMessage('Backup restore requires careful data migration. Contact your developer for safe restoration.');
+                
+            } catch (error) {
+                dataManager.handleError('Failed to restore backup', error);
+            }
+            
+            event.target.value = '';
+        }
+
+        // Import Modal Functions
+        function showImportModal() {
+            if (!currentUser || currentUser.role !== 'Administrator') {
+                showMessage('Access denied. Admin privileges required.', 'error');
+                return;
+            }
+            document.getElementById('importModal').classList.remove('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('sprImportFile').value = '';
+        }
+
+        async function processSprImport() {
+            const fileInput = document.getElementById('sprImportFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showMessage('Please select a CSV file to import.', 'warning');
+                return;
+            }
+            
+            if (!currentUser || currentUser.role !== 'Administrator') {
+                showMessage('Access denied. Admin privileges required.', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('Processing SPR CSV import...', 'info');
+                
+                const csvText = await file.text();
+                const rows = csvText.split('\n').filter(row => row.trim());
+                
+                if (rows.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                // Parse header to understand column mapping
+                const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+                
+                // Expected columns (flexible mapping)
+                const columnMap = {
+                    sprNumber: findColumn(headers, ['spr number', 'spr_number', 'sprNumber', 'spr']),
+                    awbNumber: findColumn(headers, ['awb number', 'awb_number', 'awbNumber', 'awb']),
+                    deliveryType: findColumn(headers, ['delivery type', 'delivery_type', 'deliveryType', 'type']),
+                    qNumber: findColumn(headers, ['q number', 'q_number', 'qNumber', 'q']),
+                    itemNames: findColumn(headers, ['item names', 'item_names', 'itemNames', 'items']),
+                    fromHub: findColumn(headers, ['from hub', 'from_hub', 'fromHub', 'hub']),
+                    hubEmail: findColumn(headers, ['hub email', 'hub_email', 'hubEmail']),
+                    engCode: findColumn(headers, ['engineer code', 'eng_code', 'engCode', 'engineer']),
+                    engName: findColumn(headers, ['engineer name', 'eng_name', 'engName']),
+                    engMail: findColumn(headers, ['engineer email', 'eng_mail', 'engMail', 'engineer_email']),
+                    location: findColumn(headers, ['location']),
+                    fullAddress: findColumn(headers, ['full address', 'full_address', 'fullAddress', 'address']),
+                    requestDateTime: findColumn(headers, ['request datetime', 'request_datetime', 'requestDateTime', 'request_date']),
+                    plannedDateTime: findColumn(headers, ['planned datetime', 'planned_datetime', 'plannedDateTime', 'planned_date']),
+                    sla: findColumn(headers, ['sla']),
+                    shipmentStatus: findColumn(headers, ['shipment status', 'shipment_status', 'shipmentStatus', 'status']),
+                    delayReason: findColumn(headers, ['delay reason', 'delay_reason', 'delayReason']),
+                    actualDateTime: findColumn(headers, ['actual datetime', 'actual_datetime', 'actualDateTime', 'actual_date']),
+                    deliveryTime: findColumn(headers, ['delivery time', 'delivery_time', 'deliveryTime'])
+                };
+                
+                let imported = 0;
+                let errors = [];
+                let skipped = 0;
+                
+                // Process each row
+                for (let i = 1; i < rows.length; i++) {
+                    try {
+                        const values = parseCSVRow(rows[i]);
+                        
+                        // Extract data using column mapping
+                        const sprData = {
+                            sprNumber: getValue(values, columnMap.sprNumber),
+                            awbNumber: getValue(values, columnMap.awbNumber),
+                            deliveryType: getValue(values, columnMap.deliveryType) || 'Normal Delivery',
+                            qNumber: getValue(values, columnMap.qNumber) || '0',
+                            itemNames: getValue(values, columnMap.itemNames) || '',
+                            fromHub: getValue(values, columnMap.fromHub),
+                            hubEmail: getValue(values, columnMap.hubEmail) || '',
+                            engCode: getValue(values, columnMap.engCode),
+                            engName: getValue(values, columnMap.engName) || '',
+                            engMail: getValue(values, columnMap.engMail) || '',
+                            location: getValue(values, columnMap.location) || '',
+                            fullAddress: getValue(values, columnMap.fullAddress) || '',
+                            requestDateTime: formatDateTime(getValue(values, columnMap.requestDateTime)),
+                            plannedDateTime: formatDateTime(getValue(values, columnMap.plannedDateTime)),
+                            sla: getValue(values, columnMap.sla) || '',
+                            shipmentStatus: getValue(values, columnMap.shipmentStatus) || 'Pending',
+                            delayReason: getValue(values, columnMap.delayReason) || '',
+                            actualDateTime: formatDateTime(getValue(values, columnMap.actualDateTime)),
+                            deliveryTime: getValue(values, columnMap.deliveryTime) || '',
+                            status: 'pending'
+                        };
+                        
+                        // Validate required fields
+                        if (!sprData.sprNumber || !sprData.awbNumber) {
+                            skipped++;
+                            errors.push(`Row ${i + 1}: Missing required SPR Number or AWB Number`);
+                            continue;
+                        }
+                        
+                        // Always create new SPR - no duplicate checking
+                        await dataManager.createSPR(sprData);
+                        imported++;
+                        
+                        // Show progress for large imports
+                        if (imported % 10 === 0) {
+                            showMessage(`Imported ${imported} SPRs...`, 'info');
+                        }
+                        
+                    } catch (error) {
+                        errors.push(`Row ${i + 1}: ${error.message}`);
+                        skipped++;
+                    }
+                }
+                
+                // Refresh data and displays
+                await dataManager.loadAllData();
+                sprRequests = dataManager.sprRequests;
+                displaySprs();
+                updateDashboardStats();
+                
+                // Show results
+                let resultMessage = `Import completed! ✅ ${imported} SPRs processed successfully.`;
+                if (skipped > 0) {
+                    resultMessage += ` ⚠️ ${skipped} rows had errors.`;
+                }
+                
+                if (errors.length > 0) {
+                    console.warn('Import errors:', errors);
+                    showMessage(resultMessage + ' Check console for details.', 'warning');
+                } else {
+                    showMessage(resultMessage, 'success');
+                }
+                
+                dataManager.updateRecentActivity(`Imported ${imported} SPRs from CSV`);
+                closeImportModal();
+                
+            } catch (error) {
+                showMessage(`Import failed: ${error.message}`, 'error');
+                console.error('SPR import error:', error);
+            }
+        }
+        
+        // Helper functions for CSV parsing
+        function findColumn(headers, possibleNames) {
+            for (const name of possibleNames) {
+                const index = headers.findIndex(h => h.includes(name));
+                if (index !== -1) return index;
+            }
+            return -1;
+        }
+        
+        function getValue(values, columnIndex) {
+            if (columnIndex === -1 || !values[columnIndex]) return '';
+            return values[columnIndex].trim();
+        }
+        
+        function parseCSVRow(row) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < row.length; i++) {
+                const char = row[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.replace(/"/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            values.push(current.replace(/"/g, ''));
+            return values;
+        }
+        
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '';
+            
+            try {
+                // Try to parse various date formats
+                let date;
+                
+                // Check if it's already in ISO format
+                if (dateStr.includes('T')) {
+                    date = new Date(dateStr);
+                } else if (dateStr.includes('/')) {
+                    // Handle MM/DD/YYYY or DD/MM/YYYY formats
+                    const parts = dateStr.split(/[\/\s:]/);
+                    if (parts.length >= 3) {
+                        // Assume MM/DD/YYYY format
+                        date = new Date(parts[2], parts[0] - 1, parts[1]);
+                        
+                        // Add time if present
+                        if (parts.length >= 5) {
+                            date.setHours(parseInt(parts[3]) || 0);
+                            date.setMinutes(parseInt(parts[4]) || 0);
+                        }
+                    }
+                } else if (dateStr.includes('-')) {
+                    // Handle YYYY-MM-DD format
+                    date = new Date(dateStr);
+                }
+                
+                if (date && !isNaN(date.getTime())) {
+                    return date.toISOString().slice(0, 16); // Format for datetime-local input
+                }
+            } catch (error) {
+                console.warn('Date parsing error:', error);
+            }
+            
+            return '';
+        }
+
+        // Global message function for login screen
+        function showMessage(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+            };
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-in`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${icons[type]}
+                    </svg>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, type === 'error' ? 5000 : 3000);
+        }
+        
+        console.log('🔐 SPR Management System with Secure Login & Live Database loaded successfully!');
+        console.log('👤 Demo users: admin/admin123, manager/manager123, user/user123');
+        console.log('📊 Connected to:', SUPABASE_URL);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa118a96ea1988',t:'MTc2MDY0NDA1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
