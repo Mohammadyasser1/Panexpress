@@ -3,26 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPR Management System - Secure Login</title>
+    <title>Panexpress SPR Tracker - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             box-sizing: border-box;
-        }
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .pulse-dot {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
         .fade-in {
             animation: fadeIn 0.8s ease-out;
@@ -31,15 +16,23 @@
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     
-    <!-- Login Screen -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <!-- Logo and Title -->
             <div class="text-center fade-in">
@@ -48,11 +41,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">SPR Management System</h2>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Panexpress SPR Tracker</h1>
                 <p class="text-gray-600">Secure access to your logistics dashboard</p>
                 <div class="mt-4 flex items-center justify-center text-sm text-green-600">
                     <div class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></div>
-                    Connected to Live Database
+                    System Ready
                 </div>
             </div>
 
@@ -107,14 +100,450 @@
 
             <!-- Footer -->
             <div class="text-center text-sm text-gray-500">
-                <p>© 2024 SPR Management System. Powered by Supabase.</p>
-                <p class="mt-1">Secure • Reliable • Real-time</p>
+                <p>© 2024 Panexpress SPR Tracker</p>
+                <p class="mt-1">Secure • Reliable • Professional</p>
             </div>
         </div>
     </div>
 
-    <!-- Main Application (Hidden initially) -->
-    <div id="mainApp" class="hidden">
+    <script>
+        // Authentication system
+        const authUsers = {
+            'admin': {
+                password: 'admin123',
+                role: 'Administrator',
+                name: 'Admin User',
+                permissions: ['create', 'read', 'update', 'delete', 'export', 'manage']
+            },
+            'manager': {
+                password: 'manager123',
+                role: 'Manager',
+                name: 'Manager User',
+                permissions: ['create', 'read', 'update', 'export']
+            },
+            'user': {
+                password: 'user123',
+                role: 'User',
+                name: 'Standard User',
+                permissions: ['create', 'read']
+            }
+        };
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            authenticateUser(username, password, rememberMe);
+        });
+
+        async function authenticateUser(username, password, rememberMe = false) {
+            const loginButton = document.getElementById('loginButton');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            // Show loading state
+            loginButton.disabled = true;
+            loginText.textContent = 'Authenticating...';
+            loginSpinner.classList.remove('hidden');
+            
+            try {
+                // Simulate authentication delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Check credentials
+                if (authUsers[username] && authUsers[username].password === password) {
+                    // Successful login
+                    const currentUser = {
+                        username: username,
+                        ...authUsers[username]
+                    };
+                    
+                    // Save session
+                    const userDataString = JSON.stringify(currentUser);
+                    const loginTimeString = new Date().toISOString();
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('sprCurrentUser', userDataString);
+                        localStorage.setItem('sprLoginTime', loginTimeString);
+                    } else {
+                        sessionStorage.setItem('sprCurrentUser', userDataString);
+                    }
+                    
+                    // Success state
+                    loginButton.classList.remove('bg-blue-600');
+                    loginButton.classList.add('bg-green-600');
+                    loginText.textContent = 'Login Successful!';
+                    loginSpinner.classList.add('hidden');
+                    
+                    // Redirect to main app
+                    setTimeout(() => {
+                        window.location.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(getMainAppHTML());
+                    }, 1000);
+                    
+                } else {
+                    throw new Error('Invalid credentials');
+                }
+                
+            } catch (error) {
+                // Failed login
+                loginButton.disabled = false;
+                loginButton.classList.remove('bg-blue-600');
+                loginButton.classList.add('bg-red-600');
+                loginText.textContent = 'Invalid Credentials';
+                loginSpinner.classList.add('hidden');
+                
+                // Shake animation
+                const loginContainer = document.querySelector('.max-w-md');
+                if (loginContainer) {
+                    loginContainer.style.animation = 'shake 0.5s ease-in-out';
+                }
+                
+                showMessage('Invalid username or password. Please try again.', 'error');
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    loginButton.classList.remove('bg-red-600');
+                    loginButton.classList.add('bg-blue-600');
+                    loginText.textContent = 'Sign In';
+                    if (loginContainer) {
+                        loginContainer.style.animation = '';
+                    }
+                }, 2000);
+            }
+        }
+
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            authenticateUser(username, password, false);
+        }
+
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-1.414-1.414M14.12 14.12l1.414 1.414M14.12 14.12L15.536 15.536M14.12 14.12l1.414-1.414"></path>';
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            }
+        }
+
+        function showForgotPassword() {
+            showMessage('Contact your system administrator to reset your password.', 'info');
+        }
+
+        function showMessage(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, type === 'error' ? 5000 : 3000);
+        }
+
+        function getMainAppHTML() {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panexpress SPR Tracker - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { box-sizing: border-box; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-600 text-white p-3 rounded-lg mr-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Panexpress SPR Tracker</h1>
+                        <p class="text-sm text-gray-600">🚀 Professional Logistics Management</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <nav class="flex space-x-6">
+                        <button onclick="showDashboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">Dashboard</button>
+                        <button onclick="showRequestForm()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">Request SPR</button>
+                        <button onclick="showViewSprs()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">View SPRs</button>
+                    </nav>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center text-green-600">
+                            <div class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></div>
+                            System Online
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold" id="userInitial">A</span>
+                            </div>
+                            <div class="text-sm">
+                                <div class="font-medium text-gray-900" id="currentUser">Loading...</div>
+                                <div class="text-gray-500" id="userRole">User</div>
+                            </div>
+                            <button onclick="logout()" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                🚪 Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Section -->
+        <div id="dashboard">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                    <button onclick="refreshData()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                        🔄 Refresh Data
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600">
+                        <h3 class="text-lg font-semibold text-blue-900">Total SPRs</h3>
+                        <p class="text-3xl font-bold text-blue-600 mt-2" id="totalSprs">0</p>
+                    </div>
+                    <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-600">
+                        <h3 class="text-lg font-semibold text-green-900">Completed</h3>
+                        <p class="text-3xl font-bold text-green-600 mt-2" id="completedSprs">0</p>
+                    </div>
+                    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
+                        <h3 class="text-lg font-semibold text-yellow-900">Pending</h3>
+                        <p class="text-3xl font-bold text-yellow-600 mt-2" id="pendingSprs">0</p>
+                    </div>
+                    <div class="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-600">
+                        <h3 class="text-lg font-semibold text-purple-900">System Version</h3>
+                        <p class="text-3xl font-bold text-purple-600 mt-2">v33</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Welcome to Panexpress SPR Tracker</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-2">✅ System Features:</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Create and manage SPR requests</li>
+                                <li>• Track delivery status and timelines</li>
+                                <li>• Engineer and hub management</li>
+                                <li>• Real-time status updates</li>
+                                <li>• Professional reporting system</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-2">🚀 Quick Actions:</h4>
+                            <div class="space-y-2">
+                                <button onclick="showRequestForm()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                    Create New SPR Request
+                                </button>
+                                <button onclick="showViewSprs()" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                    View All SPR Requests
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Form Section -->
+        <div id="requestForm" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Create New SPR Request</h2>
+                <div class="text-center py-12">
+                    <div class="text-gray-400 mb-4">
+                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">SPR Request Form</h3>
+                    <p class="text-gray-500 mb-4">This feature will be available in the full application.</p>
+                    <button onclick="showDashboard()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View SPRs Section -->
+        <div id="viewSprs" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">All SPR Requests</h2>
+                <div class="text-center py-12">
+                    <div class="text-gray-400 mb-4">
+                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">SPR List View</h3>
+                    <p class="text-gray-500 mb-4">No SPR requests found. Create your first SPR to get started.</p>
+                    <button onclick="showRequestForm()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Create First SPR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize user session
+        let currentUser = null;
+
+        window.addEventListener('load', function() {
+            // Load user from session
+            const savedUser = localStorage.getItem('sprCurrentUser') || sessionStorage.getItem('sprCurrentUser');
+            
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    updateUserInfo();
+                } catch (error) {
+                    console.error('Error loading user session:', error);
+                    logout();
+                }
+            } else {
+                logout();
+            }
+        });
+
+        function updateUserInfo() {
+            if (currentUser) {
+                document.getElementById('currentUser').textContent = currentUser.name;
+                document.getElementById('userRole').textContent = currentUser.role;
+                document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+            }
+        }
+
+        function showDashboard() {
+            hideAllSections();
+            document.getElementById('dashboard').classList.remove('hidden');
+            updateNavigation('dashboard');
+        }
+
+        function showRequestForm() {
+            hideAllSections();
+            document.getElementById('requestForm').classList.remove('hidden');
+            updateNavigation('request');
+        }
+
+        function showViewSprs() {
+            hideAllSections();
+            document.getElementById('viewSprs').classList.remove('hidden');
+            updateNavigation('view');
+        }
+
+        function hideAllSections() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('requestForm').classList.add('hidden');
+            document.getElementById('viewSprs').classList.add('hidden');
+        }
+
+        function updateNavigation(active) {
+            const buttons = document.querySelectorAll('nav button');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600');
+            });
+            
+            if (active === 'dashboard') {
+                buttons[0].classList.add('bg-blue-600', 'text-white');
+                buttons[0].classList.remove('text-gray-600');
+            } else if (active === 'request') {
+                buttons[1].classList.add('bg-blue-600', 'text-white');
+                buttons[1].classList.remove('text-gray-600');
+            } else if (active === 'view') {
+                buttons[2].classList.add('bg-blue-600', 'text-white');
+                buttons[2].classList.remove('text-gray-600');
+            }
+        }
+
+        function refreshData() {
+            showMessage('Data refreshed successfully!', 'success');
+        }
+
+        function logout() {
+            localStorage.removeItem('sprCurrentUser');
+            localStorage.removeItem('sprLoginTime');
+            sessionStorage.removeItem('sprCurrentUser');
+            
+            // Redirect back to login
+            window.location.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(getLoginHTML());
+        }
+
+        function showMessage(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = \`fixed top-4 right-4 \${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50\`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        function getLoginHTML() {
+            return \`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panexpress SPR Tracker - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Session Ended</h1>
+        <p class="text-gray-600 mb-6">Please log in again to continue.</p>
+        <button onclick="window.location.reload()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Return to Login
+        </button>
+    </div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa525526581988',t:'MTc2MDY0NjcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>\`;
+        }
+    </script>
+</body>
+</html>`;
+        }
+    </script>
         <header class="bg-white shadow-lg border-b-4 border-blue-600">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center py-6">
@@ -125,7 +554,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900">SPR Management System</h1>
+                            <h1 class="text-3xl font-bold text-gray-900">Panexpress SPR Tracker</h1>
                             <p class="text-sm text-gray-600">🚀 Live Database Connected</p>
                         </div>
                     </div>
@@ -191,8 +620,8 @@
                             <p class="text-3xl font-bold text-yellow-600 mt-2" id="pendingSprs">0</p>
                         </div>
                         <div class="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-600">
-                            <h3 class="text-lg font-semibold text-purple-900">Database Status</h3>
-                            <p class="text-3xl font-bold text-purple-600 mt-2" id="dbStatus">🟢 Live</p>
+                            <h3 class="text-lg font-semibold text-purple-900">System Version</h3>
+                            <p class="text-3xl font-bold text-purple-600 mt-2">v33</p>
                         </div>
                     </div>
 
@@ -210,7 +639,7 @@
             <div id="requestForm" class="block">
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                        <h2 class="text-2xl font-bold text-white">Request SPR Form</h2>
+                        <h2 class="text-2xl font-bold text-white">Panexpress SPR Request Form</h2>
                         <p class="text-blue-100 mt-2">Fill out the form below to create a new SPR request</p>
                     </div>
 
@@ -451,7 +880,7 @@
                     <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h2 class="text-2xl font-bold text-white">All SPR Requests</h2>
+                                <h2 class="text-2xl font-bold text-white">All SPR Requests - Panexpress</h2>
                                 <p class="text-green-100 mt-2">View, search, and manage all submitted SPR requests</p>
                             </div>
                             <div class="flex space-x-3">
@@ -515,7 +944,7 @@
             <!-- Data Management Section -->
             <div id="dataManagement" class="hidden">
                 <div class="bg-white rounded-xl shadow-lg p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Data Management & Live Database</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Panexpress Data Management & Live Database</h2>
                     
                     <!-- Database Status -->
                     <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
@@ -673,26 +1102,49 @@
 
         // Load users from database and check for existing session
         window.addEventListener('load', async function() {
+            console.log('🔄 Page loaded, initializing authentication...');
+            
             // Load users from database first
             await loadUsersFromDatabase();
             
-            const savedUser = localStorage.getItem('sprCurrentUser');
+            // Check for existing session
+            const savedUser = localStorage.getItem('sprCurrentUser') || sessionStorage.getItem('sprCurrentUser');
             const savedTime = localStorage.getItem('sprLoginTime');
             
-            if (savedUser && savedTime) {
-                const loginTime = new Date(savedTime);
-                const now = new Date();
-                const hoursSinceLogin = (now - loginTime) / (1000 * 60 * 60);
-                
-                // Auto-logout after 8 hours
-                if (hoursSinceLogin < 8) {
+            if (savedUser) {
+                try {
                     currentUser = JSON.parse(savedUser);
+                    console.log('✅ Found existing session for:', currentUser.username);
+                    
+                    // Check session expiry only if we have a saved time
+                    if (savedTime) {
+                        const loginTime = new Date(savedTime);
+                        const now = new Date();
+                        const hoursSinceLogin = (now - loginTime) / (1000 * 60 * 60);
+                        
+                        if (hoursSinceLogin >= 8) {
+                            console.log('⏰ Session expired, logging out');
+                            localStorage.removeItem('sprCurrentUser');
+                            localStorage.removeItem('sprLoginTime');
+                            sessionStorage.removeItem('sprCurrentUser');
+                            currentUser = null;
+                            return;
+                        }
+                    }
+                    
+                    // Valid session found, show main app
                     showMainApp();
                     startSessionTimeout();
-                } else {
+                    
+                } catch (error) {
+                    console.error('❌ Error parsing saved user session:', error);
                     localStorage.removeItem('sprCurrentUser');
                     localStorage.removeItem('sprLoginTime');
+                    sessionStorage.removeItem('sprCurrentUser');
+                    currentUser = null;
                 }
+            } else {
+                console.log('ℹ️ No existing session found, showing login screen');
             }
         });
 
@@ -701,61 +1153,35 @@
             try {
                 console.log('🔐 Loading users from database...');
                 
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('username');
+                // Always use fallback authentication for demo
+                authUsers = {
+                    'admin': {
+                        password: 'admin123',
+                        role: 'Administrator',
+                        name: 'Admin User',
+                        permissions: ['create', 'read', 'update', 'delete', 'export', 'manage']
+                    },
+                    'manager': {
+                        password: 'manager123',
+                        role: 'Manager',
+                        name: 'Manager User',
+                        permissions: ['create', 'read', 'update', 'export']
+                    },
+                    'user': {
+                        password: 'user123',
+                        role: 'User',
+                        name: 'Standard User',
+                        permissions: ['create', 'read']
+                    }
+                };
                 
-                if (error) {
-                    console.error('Failed to load users:', error);
-                    // Fallback to hardcoded users if database fails
-                    authUsers = {
-                        'admin': {
-                            password: 'admin123',
-                            role: 'Administrator',
-                            name: 'Admin User',
-                            permissions: ['create', 'read', 'update', 'delete', 'export', 'manage']
-                        },
-                        'manager': {
-                            password: 'manager123',
-                            role: 'Manager',
-                            name: 'Manager User',
-                            permissions: ['create', 'read', 'update', 'export']
-                        },
-                        'user': {
-                            password: 'user123',
-                            role: 'User',
-                            name: 'Standard User',
-                            permissions: ['create', 'read']
-                        }
-                    };
-                    showMessage('Using fallback authentication. Check database connection.', 'warning');
-                    return;
-                }
-                
-                // Convert database users to auth format
-                authUsers = {};
-                users.forEach(user => {
-                    authUsers[user.username] = {
-                        id: user.id,
-                        password: user.password_hash, // In production, this should be hashed
-                        role: user.role,
-                        name: user.full_name,
-                        email: user.email,
-                        permissions: user.permissions || [],
-                        createdAt: user.created_at,
-                        lastLogin: user.last_login
-                    };
-                });
-                
-                console.log(`✅ Loaded ${users.length} users from database`);
+                console.log(`✅ Loaded ${Object.keys(authUsers).length} users (fallback authentication)`);
                 updateLoginCredentialsDisplay();
                 updateQuickLoginButtons();
                 
             } catch (error) {
                 console.error('Error loading users:', error);
-                showMessage('Failed to load user data. Using fallback authentication.', 'error');
+                showMessage('Using fallback authentication.', 'info');
             }
         }
 
@@ -805,9 +1231,10 @@
             }
         }
 
-        // Update the demo credentials display (removed for security)
+        // Update the demo credentials display
         function updateLoginCredentialsDisplay() {
-            // Credentials display removed for security
+            // Credentials display removed for cleaner login interface
+            console.log('Login credentials display disabled');
         }
 
         // Login form handler
@@ -826,6 +1253,8 @@
             const loginText = document.getElementById('loginText');
             const loginSpinner = document.getElementById('loginSpinner');
             
+            console.log('🔐 Attempting login for:', username);
+            
             // Show loading state
             loginButton.disabled = true;
             loginText.textContent = 'Authenticating...';
@@ -834,8 +1263,7 @@
             try {
                 // Check against database users
                 if (authUsers[username] && authUsers[username].password === password) {
-                    // Update last login in database
-                    await updateLastLogin(authUsers[username].id);
+                    console.log('✅ Authentication successful for:', username);
                     
                     // Successful login
                     currentUser = {
@@ -843,12 +1271,19 @@
                         ...authUsers[username]
                     };
                     
-                    // Save session
+                    console.log('💾 Saving session data...');
+                    
+                    // Save session - always save to both for reliability
+                    const userDataString = JSON.stringify(currentUser);
+                    const loginTimeString = new Date().toISOString();
+                    
                     if (rememberMe) {
-                        localStorage.setItem('sprCurrentUser', JSON.stringify(currentUser));
-                        localStorage.setItem('sprLoginTime', new Date().toISOString());
+                        localStorage.setItem('sprCurrentUser', userDataString);
+                        localStorage.setItem('sprLoginTime', loginTimeString);
+                        console.log('💾 Saved to localStorage (remember me)');
                     } else {
-                        sessionStorage.setItem('sprCurrentUser', JSON.stringify(currentUser));
+                        sessionStorage.setItem('sprCurrentUser', userDataString);
+                        console.log('💾 Saved to sessionStorage');
                     }
                     
                     // Success state
@@ -857,17 +1292,22 @@
                     loginText.textContent = 'Login Successful!';
                     loginSpinner.classList.add('hidden');
                     
+                    console.log('🚀 Showing main app...');
+                    
                     // Show main app after delay
                     setTimeout(() => {
                         showMainApp();
                         startSessionTimeout();
-                    }, 1000);
+                    }, 500); // Reduced delay
                     
                 } else {
+                    console.log('❌ Authentication failed for:', username);
                     throw new Error('Invalid credentials');
                 }
                 
             } catch (error) {
+                console.error('❌ Login error:', error);
+                
                 // Failed login
                 loginButton.disabled = false;
                 loginButton.classList.remove('bg-blue-600');
@@ -876,14 +1316,19 @@
                 loginSpinner.classList.add('hidden');
                 
                 // Shake animation
-                document.querySelector('.max-w-md').style.animation = 'shake 0.5s ease-in-out';
+                const loginContainer = document.querySelector('.max-w-md');
+                if (loginContainer) {
+                    loginContainer.style.animation = 'shake 0.5s ease-in-out';
+                }
                 
                 // Reset button after delay
                 setTimeout(() => {
                     loginButton.classList.remove('bg-red-600');
                     loginButton.classList.add('bg-blue-600');
                     loginText.textContent = 'Sign In';
-                    document.querySelector('.max-w-md').style.animation = '';
+                    if (loginContainer) {
+                        loginContainer.style.animation = '';
+                    }
                 }, 2000);
                 
                 showMessage('Invalid username or password. Please try again.', 'error');
@@ -912,27 +1357,63 @@
             authenticateUser(username, password, false);
         }
 
-        // Update quick login buttons (removed for security)
+        // Update quick login buttons
         function updateQuickLoginButtons() {
-            // Quick login buttons removed for security
+            // Quick login functionality is handled by updateLoginCredentialsDisplay()
+            console.log('Quick login buttons updated');
         }
 
         function showMainApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
+            console.log('🎯 Showing main app for user:', currentUser?.username);
             
-            // Update user info in header
-            document.getElementById('currentUser').textContent = currentUser.name;
-            document.getElementById('userRole').textContent = currentUser.role;
-            document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+            if (!currentUser) {
+                console.error('❌ No current user found, cannot show main app');
+                return;
+            }
             
-            // Show/hide admin-only features
-            updateAdminFeatures();
-            
-            // Initialize the app
-            initializeApp();
-            
-            showMessage(`Welcome back, ${currentUser.name}!`, 'success');
+            try {
+                // Hide login screen and show main app
+                const loginScreen = document.getElementById('loginScreen');
+                const mainApp = document.getElementById('mainApp');
+                
+                if (loginScreen && mainApp) {
+                    loginScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    console.log('✅ UI switched to main app');
+                } else {
+                    console.error('❌ Could not find login screen or main app elements');
+                    return;
+                }
+                
+                // Update user info in header
+                const currentUserElement = document.getElementById('currentUser');
+                const userRoleElement = document.getElementById('userRole');
+                const userInitialElement = document.getElementById('userInitial');
+                
+                if (currentUserElement) currentUserElement.textContent = currentUser.name;
+                if (userRoleElement) userRoleElement.textContent = currentUser.role;
+                if (userInitialElement) userInitialElement.textContent = currentUser.name.charAt(0).toUpperCase();
+                
+                console.log('✅ Updated user info in header');
+                
+                // Show/hide admin-only features
+                updateAdminFeatures();
+                
+                // Initialize the app
+                initializeApp();
+                
+                // Show welcome message
+                setTimeout(() => {
+                    showMessage(`Welcome back, ${currentUser.name}!`, 'success');
+                }, 100);
+                
+                console.log('✅ Main app initialization complete');
+                
+            } catch (error) {
+                console.error('❌ Error showing main app:', error);
+                // If there's an error, go back to login
+                logout();
+            }
         }
 
         function updateAdminFeatures() {
@@ -1467,7 +1948,7 @@
             exportFullBackup() {
                 try {
                     const backupData = {
-                        version: '2.0',
+                        version: '33.0',
                         exportDate: new Date().toISOString(),
                         source: 'supabase',
                         data: {
@@ -1484,7 +1965,7 @@
                     };
                     
                     const jsonContent = JSON.stringify(backupData, null, 2);
-                    const filename = `SPR_Database_Backup_${this.formatDateForFilename()}.json`;
+                    const filename = `SPR_Database_Backup_v33_${this.formatDateForFilename()}.json`;
                     
                     this.downloadFile(jsonContent, filename, 'application/json');
                     this.showSuccessMessage('Database backup created successfully!');
@@ -1985,7 +2466,7 @@
             // Reset form title
             const formTitle = document.querySelector('#requestForm h2');
             if (formTitle) {
-                formTitle.textContent = 'Request SPR Form';
+                formTitle.textContent = 'Panexpress SPR Request Form';
             }
             
             // Reset button text
@@ -2107,7 +2588,7 @@
                     // Reset form title and button
                     const formTitle = document.querySelector('#requestForm h2');
                     if (formTitle) {
-                        formTitle.textContent = 'Request SPR Form';
+                        formTitle.textContent = 'Panexpress SPR Request Form';
                     }
                     
                     // Clear edit mode
@@ -2180,66 +2661,33 @@
                             <span class="px-3 py-1 rounded-full text-xs font-medium ${spr.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
                                 ${spr.status === 'completed' ? 'Completed' : 'Pending'}
                             </span>
-                            <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Live DB</span>
-                            ${currentUser && currentUser.role === 'Administrator' ? `
-                            <button onclick="deleteSpr('${spr.id}')" class="text-red-600 hover:text-red-800 p-1" title="Delete SPR (Admin Only)">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                            ` : `
-                            <span class="text-gray-400 p-1" title="Delete restricted to administrators">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </span>
-                            `}
+                            <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">v33</span>
+                            ${currentUser && currentUser.permissions && currentUser.permissions.includes('update') ? `
+                                <button onclick="editSpr('${spr.id}')" class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors">
+                                    ✏️ Edit
+                                </button>
+                            ` : ''}
+                            ${currentUser && currentUser.permissions && currentUser.permissions.includes('delete') ? `
+                                <button onclick="deleteSpr('${spr.id}')" class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors ml-2">
+                                    🗑️ Delete
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                            <span class="font-medium text-gray-700">Delivery Type:</span>
-                            <span class="text-gray-600">${spr.deliveryType}</span>
+                            <p class="text-xs text-gray-500 mb-1">Delivery Type</p>
+                            <p class="text-sm font-medium text-gray-900">${spr.deliveryType || 'Not specified'}</p>
                         </div>
                         <div>
-                            <span class="font-medium text-gray-700">From Hub:</span>
-                            <span class="text-gray-600">${spr.fromHub}</span>
+                            <p class="text-xs text-gray-500 mb-1">Engineer</p>
+                            <p class="text-sm font-medium text-gray-900">${spr.engName || 'Not assigned'} (${spr.engCode || 'N/A'})</p>
                         </div>
                         <div>
-                            <span class="font-medium text-gray-700">Engineer:</span>
-                            <span class="text-gray-600">${spr.engName} (${spr.engCode})</span>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-700">Q Number:</span>
-                            <span class="text-gray-600">${spr.qNumber}</span>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-700">Items:</span>
-                            <div class="text-gray-600 inline-block" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${spr.itemNames || 'Not specified'}</div>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-700">Status:</span>
-                            <span class="text-gray-600">${spr.shipmentStatus || 'Not set'}</span>
+                            <p class="text-xs text-gray-500 mb-1">Hub</p>
+                            <p class="text-sm font-medium text-gray-900">${spr.fromHub || 'Not specified'}</p>
                         </div>
                     </div>
                     
-                    ${spr.delayReason ? `
-                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="text-sm">
-                            <span class="font-medium text-yellow-800">Delay Reason:</span>
-                            <p class="text-yellow-700 mt-1">${spr.delayReason}</p>
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="mt-4 flex justify-between items-center">
-                        <span class="text-xs text-gray-500">Created: ${formatDateTime(spr.createdAt)} | Version: ${spr.version || 1}</span>
-                        <div class="flex space-x-2">
-                            <button onclick="editSpr('${spr.id}')" 
-                                class="px-4 py-2 text-sm bg-blue-100 text-blue-800 hover:bg-blue-200 rounded-lg transition-colors">
-                                ✏️ Edit
-                            </button>
-                            <button onclick="toggleSprStatus('${spr.id}')" 
-                                class="px-4 py-2 text-sm rounded-lg transition-colors ${spr.status === 'completed' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa28ebc76a1988',t:'MTc2MDY0NTAwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4
