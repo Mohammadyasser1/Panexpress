@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panexpress SPR Tracker - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             box-sizing: border-box;
@@ -28,11 +29,14 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     
-    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <!-- Logo and Title -->
             <div class="text-center fade-in">
@@ -106,444 +110,8 @@
         </div>
     </div>
 
-    <script>
-        // Authentication system
-        const authUsers = {
-            'admin': {
-                password: 'admin123',
-                role: 'Administrator',
-                name: 'Admin User',
-                permissions: ['create', 'read', 'update', 'delete', 'export', 'manage']
-            },
-            'manager': {
-                password: 'manager123',
-                role: 'Manager',
-                name: 'Manager User',
-                permissions: ['create', 'read', 'update', 'export']
-            },
-            'user': {
-                password: 'user123',
-                role: 'User',
-                name: 'Standard User',
-                permissions: ['create', 'read']
-            }
-        };
-
-        // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            authenticateUser(username, password, rememberMe);
-        });
-
-        async function authenticateUser(username, password, rememberMe = false) {
-            const loginButton = document.getElementById('loginButton');
-            const loginText = document.getElementById('loginText');
-            const loginSpinner = document.getElementById('loginSpinner');
-            
-            // Show loading state
-            loginButton.disabled = true;
-            loginText.textContent = 'Authenticating...';
-            loginSpinner.classList.remove('hidden');
-            
-            try {
-                // Simulate authentication delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Check credentials
-                if (authUsers[username] && authUsers[username].password === password) {
-                    // Successful login
-                    const currentUser = {
-                        username: username,
-                        ...authUsers[username]
-                    };
-                    
-                    // Save session
-                    const userDataString = JSON.stringify(currentUser);
-                    const loginTimeString = new Date().toISOString();
-                    
-                    if (rememberMe) {
-                        localStorage.setItem('sprCurrentUser', userDataString);
-                        localStorage.setItem('sprLoginTime', loginTimeString);
-                    } else {
-                        sessionStorage.setItem('sprCurrentUser', userDataString);
-                    }
-                    
-                    // Success state
-                    loginButton.classList.remove('bg-blue-600');
-                    loginButton.classList.add('bg-green-600');
-                    loginText.textContent = 'Login Successful!';
-                    loginSpinner.classList.add('hidden');
-                    
-                    // Redirect to main app
-                    setTimeout(() => {
-                        window.location.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(getMainAppHTML());
-                    }, 1000);
-                    
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-                
-            } catch (error) {
-                // Failed login
-                loginButton.disabled = false;
-                loginButton.classList.remove('bg-blue-600');
-                loginButton.classList.add('bg-red-600');
-                loginText.textContent = 'Invalid Credentials';
-                loginSpinner.classList.add('hidden');
-                
-                // Shake animation
-                const loginContainer = document.querySelector('.max-w-md');
-                if (loginContainer) {
-                    loginContainer.style.animation = 'shake 0.5s ease-in-out';
-                }
-                
-                showMessage('Invalid username or password. Please try again.', 'error');
-                
-                // Reset button after delay
-                setTimeout(() => {
-                    loginButton.classList.remove('bg-red-600');
-                    loginButton.classList.add('bg-blue-600');
-                    loginText.textContent = 'Sign In';
-                    if (loginContainer) {
-                        loginContainer.style.animation = '';
-                    }
-                }, 2000);
-            }
-        }
-
-        function quickLogin(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
-            authenticateUser(username, password, false);
-        }
-
-        function togglePassword() {
-            const passwordField = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-1.414-1.414M14.12 14.12l1.414 1.414M14.12 14.12L15.536 15.536M14.12 14.12l1.414-1.414"></path>';
-            } else {
-                passwordField.type = 'password';
-                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
-            }
-        }
-
-        function showForgotPassword() {
-            showMessage('Contact your system administrator to reset your password.', 'info');
-        }
-
-        function showMessage(message, type = 'success') {
-            const colors = {
-                success: 'bg-green-500',
-                warning: 'bg-yellow-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500'
-            };
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
-            messageDiv.textContent = message;
-            document.body.appendChild(messageDiv);
-
-            setTimeout(() => {
-                messageDiv.remove();
-            }, type === 'error' ? 5000 : 3000);
-        }
-
-        function getMainAppHTML() {
-            return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panexpress SPR Tracker - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <style>
-        body { box-sizing: border-box; }
-        .pulse-dot { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .slide-in { animation: slideIn 0.5s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-white shadow-lg border-b-4 border-blue-600">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-6">
-                <div class="flex items-center">
-                    <div class="bg-blue-600 text-white p-3 rounded-lg mr-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Panexpress SPR Tracker</h1>
-                        <p class="text-sm text-gray-600">🚀 Professional Logistics Management</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-6">
-                    <nav class="flex space-x-6">
-                        <button onclick="showDashboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">Dashboard</button>
-                        <button onclick="showRequestForm()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">Request SPR</button>
-                        <button onclick="showViewSprs()" class="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors">View SPRs</button>
-                    </nav>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center text-green-600">
-                            <div class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></div>
-                            System Online
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                <span class="text-white text-sm font-bold" id="userInitial">A</span>
-                            </div>
-                            <div class="text-sm">
-                                <div class="font-medium text-gray-900" id="currentUser">Loading...</div>
-                                <div class="text-gray-500" id="userRole">User</div>
-                            </div>
-                            <button onclick="logout()" class="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
-                                🚪 Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Dashboard Section -->
-        <div id="dashboard">
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
-                    <button onclick="refreshData()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-                        🔄 Refresh Data
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600">
-                        <h3 class="text-lg font-semibold text-blue-900">Total SPRs</h3>
-                        <p class="text-3xl font-bold text-blue-600 mt-2" id="totalSprs">0</p>
-                    </div>
-                    <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-600">
-                        <h3 class="text-lg font-semibold text-green-900">Completed</h3>
-                        <p class="text-3xl font-bold text-green-600 mt-2" id="completedSprs">0</p>
-                    </div>
-                    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
-                        <h3 class="text-lg font-semibold text-yellow-900">Pending</h3>
-                        <p class="text-3xl font-bold text-yellow-600 mt-2" id="pendingSprs">0</p>
-                    </div>
-                    <div class="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-600">
-                        <h3 class="text-lg font-semibold text-purple-900">System Version</h3>
-                        <p class="text-3xl font-bold text-purple-600 mt-2">v33</p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Welcome to Panexpress SPR Tracker</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h4 class="font-medium text-gray-900 mb-2">✅ System Features:</h4>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• Create and manage SPR requests</li>
-                                <li>• Track delivery status and timelines</li>
-                                <li>• Engineer and hub management</li>
-                                <li>• Real-time status updates</li>
-                                <li>• Professional reporting system</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-900 mb-2">🚀 Quick Actions:</h4>
-                            <div class="space-y-2">
-                                <button onclick="showRequestForm()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                    Create New SPR Request
-                                </button>
-                                <button onclick="showViewSprs()" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                    View All SPR Requests
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Request Form Section -->
-        <div id="requestForm" class="hidden">
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Create New SPR Request</h2>
-                <div class="text-center py-12">
-                    <div class="text-gray-400 mb-4">
-                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">SPR Request Form</h3>
-                    <p class="text-gray-500 mb-4">This feature will be available in the full application.</p>
-                    <button onclick="showDashboard()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Back to Dashboard
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- View SPRs Section -->
-        <div id="viewSprs" class="hidden">
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">All SPR Requests</h2>
-                <div class="text-center py-12">
-                    <div class="text-gray-400 mb-4">
-                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">SPR List View</h3>
-                    <p class="text-gray-500 mb-4">No SPR requests found. Create your first SPR to get started.</p>
-                    <button onclick="showRequestForm()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                        Create First SPR
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        // Initialize user session
-        let currentUser = null;
-
-        window.addEventListener('load', function() {
-            // Load user from session
-            const savedUser = localStorage.getItem('sprCurrentUser') || sessionStorage.getItem('sprCurrentUser');
-            
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    updateUserInfo();
-                } catch (error) {
-                    console.error('Error loading user session:', error);
-                    logout();
-                }
-            } else {
-                logout();
-            }
-        });
-
-        function updateUserInfo() {
-            if (currentUser) {
-                document.getElementById('currentUser').textContent = currentUser.name;
-                document.getElementById('userRole').textContent = currentUser.role;
-                document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
-            }
-        }
-
-        function showDashboard() {
-            hideAllSections();
-            document.getElementById('dashboard').classList.remove('hidden');
-            updateNavigation('dashboard');
-        }
-
-        function showRequestForm() {
-            hideAllSections();
-            document.getElementById('requestForm').classList.remove('hidden');
-            updateNavigation('request');
-        }
-
-        function showViewSprs() {
-            hideAllSections();
-            document.getElementById('viewSprs').classList.remove('hidden');
-            updateNavigation('view');
-        }
-
-        function hideAllSections() {
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('requestForm').classList.add('hidden');
-            document.getElementById('viewSprs').classList.add('hidden');
-        }
-
-        function updateNavigation(active) {
-            const buttons = document.querySelectorAll('nav button');
-            buttons.forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('text-gray-600');
-            });
-            
-            if (active === 'dashboard') {
-                buttons[0].classList.add('bg-blue-600', 'text-white');
-                buttons[0].classList.remove('text-gray-600');
-            } else if (active === 'request') {
-                buttons[1].classList.add('bg-blue-600', 'text-white');
-                buttons[1].classList.remove('text-gray-600');
-            } else if (active === 'view') {
-                buttons[2].classList.add('bg-blue-600', 'text-white');
-                buttons[2].classList.remove('text-gray-600');
-            }
-        }
-
-        function refreshData() {
-            showMessage('Data refreshed successfully!', 'success');
-        }
-
-        function logout() {
-            localStorage.removeItem('sprCurrentUser');
-            localStorage.removeItem('sprLoginTime');
-            sessionStorage.removeItem('sprCurrentUser');
-            
-            // Redirect back to login
-            window.location.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(getLoginHTML());
-        }
-
-        function showMessage(message, type = 'success') {
-            const colors = {
-                success: 'bg-green-500',
-                warning: 'bg-yellow-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500'
-            };
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = \`fixed top-4 right-4 \${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50\`;
-            messageDiv.textContent = message;
-            document.body.appendChild(messageDiv);
-
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 3000);
-        }
-
-        function getLoginHTML() {
-            return \`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panexpress SPR Tracker - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">Session Ended</h1>
-        <p class="text-gray-600 mb-6">Please log in again to continue.</p>
-        <button onclick="window.location.reload()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Return to Login
-        </button>
-    </div>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa525526581988',t:'MTc2MDY0NjcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>\`;
-        }
-    </script>
-</body>
-</html>`;
-        }
-    </script>
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden bg-gray-50 min-h-screen">
         <header class="bg-white shadow-lg border-b-4 border-blue-600">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center py-6">
@@ -1054,43 +622,6 @@
         </main>
     </div>
 
-    <!-- Import SPRs Modal -->
-    <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4 w-full">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Import SPRs</h3>
-                <button onclick="closeImportModal()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="mb-4">
-                <label for="sprImportFile" class="block text-sm font-medium text-gray-700 mb-2">Select CSV File</label>
-                <input type="file" id="sprImportFile" accept=".csv" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700">
-            </div>
-            <div class="text-sm text-gray-600 mb-4">
-                <p class="font-medium mb-2">📋 CSV Format Requirements:</p>
-                <ul class="text-xs space-y-1 ml-4">
-                    <li>• <strong>Required:</strong> SPR Number, AWB Number</li>
-                    <li>• <strong>Optional:</strong> Delivery Type, Q Number, Item Names, Hub, Engineer, etc.</li>
-                    <li>• <strong>Flexible headers:</strong> "SPR Number" or "spr_number" or "SPR"</li>
-                    <li>• <strong>Date formats:</strong> MM/DD/YYYY, YYYY-MM-DD, or ISO format</li>
-                </ul>
-                <p class="mt-2 text-green-600">✅ All SPRs will be imported. Duplicate SPR numbers are fully allowed.</p>
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button onclick="closeImportModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button onclick="processSprImport()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Import SPRs
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // ===========================================
         // DATABASE AUTHENTICATION SYSTEM
@@ -1176,65 +707,11 @@
                 };
                 
                 console.log(`✅ Loaded ${Object.keys(authUsers).length} users (fallback authentication)`);
-                updateLoginCredentialsDisplay();
-                updateQuickLoginButtons();
                 
             } catch (error) {
                 console.error('Error loading users:', error);
                 showMessage('Using fallback authentication.', 'info');
             }
-        }
-
-        // Add new user to database
-        async function addUser(userData) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([{
-                        username: userData.username,
-                        password_hash: userData.password, // In production, hash this
-                        full_name: userData.fullName,
-                        email: userData.email,
-                        role: userData.role,
-                        permissions: userData.permissions,
-                        is_active: true
-                    }])
-                    .select()
-                    .single();
-                
-                if (error) {
-                    if (error.code === '23505') {
-                        throw new Error('Username already exists');
-                    }
-                    throw error;
-                }
-                
-                // Add to local auth users
-                authUsers[userData.username] = {
-                    id: data.id,
-                    password: userData.password,
-                    role: userData.role,
-                    name: userData.fullName,
-                    email: userData.email,
-                    permissions: userData.permissions,
-                    createdAt: data.created_at
-                };
-                
-                updateLoginCredentialsDisplay();
-                updateQuickLoginButtons();
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Failed to add user:', error);
-                throw error;
-            }
-        }
-
-        // Update the demo credentials display
-        function updateLoginCredentialsDisplay() {
-            // Credentials display removed for cleaner login interface
-            console.log('Login credentials display disabled');
         }
 
         // Login form handler
@@ -1261,6 +738,9 @@
             loginSpinner.classList.remove('hidden');
             
             try {
+                // Simulate authentication delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
                 // Check against database users
                 if (authUsers[username] && authUsers[username].password === password) {
                     console.log('✅ Authentication successful for:', username);
@@ -1335,32 +815,10 @@
             }
         }
 
-        // Update last login timestamp in database
-        async function updateLastLogin(userId) {
-            try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ last_login: new Date().toISOString() })
-                    .eq('id', userId);
-                
-                if (error) {
-                    console.error('Failed to update last login:', error);
-                }
-            } catch (error) {
-                console.error('Error updating last login:', error);
-            }
-        }
-
         function quickLogin(username, password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
             authenticateUser(username, password, false);
-        }
-
-        // Update quick login buttons
-        function updateQuickLoginButtons() {
-            // Quick login functionality is handled by updateLoginCredentialsDisplay()
-            console.log('Quick login buttons updated');
         }
 
         function showMainApp() {
@@ -1500,18 +958,6 @@
         function showForgotPassword() {
             showMessage('Contact your system administrator to reset your password.', 'info');
         }
-
-        // Add shake animation CSS
-        const shakeCSS = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-        `;
-        const style = document.createElement('style');
-        style.textContent = shakeCSS;
-        document.head.appendChild(style);
 
         // ===========================================
         // SUPABASE CONFIGURATION & INITIALIZATION
@@ -2662,16 +2108,6 @@
                                 ${spr.status === 'completed' ? 'Completed' : 'Pending'}
                             </span>
                             <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">v33</span>
-                            ${currentUser && currentUser.permissions && currentUser.permissions.includes('update') ? `
-                                <button onclick="editSpr('${spr.id}')" class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors">
-                                    ✏️ Edit
-                                </button>
-                            ` : ''}
-                            ${currentUser && currentUser.permissions && currentUser.permissions.includes('delete') ? `
-                                <button onclick="deleteSpr('${spr.id}')" class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors ml-2">
-                                    🗑️ Delete
-                                </button>
-                            ` : ''}
                         </div>
                     </div>
                     
@@ -2690,4 +2126,285 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Request Date</p>
+                            <p class="text-sm font-medium text-gray-900">${formatDateTime24(spr.requestDateTime)}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Planned Date</p>
+                            <p class="text-sm font-medium text-gray-900">${formatDateTime24(spr.plannedDateTime)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-500">
+                            Created: ${formatDateTime24(spr.createdAt)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            sprList.innerHTML = sprHtml;
+        }
+
+        function displayEngineers() {
+            if (!dataManager) return;
+            
+            const engineerList = document.getElementById('engineerList');
+            const engineerCount = document.getElementById('engineerCount');
+            
+            if (!engineerList || !engineerCount) return;
+            
+            const engineers = Object.entries(dataManager.engineerData);
+            engineerCount.textContent = `${engineers.length} engineers`;
+            
+            if (engineers.length === 0) {
+                engineerList.innerHTML = '<div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">No engineers found</div>';
+                return;
+            }
+            
+            const engineerHtml = engineers.map(([code, data]) => `
+                <div class="p-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium text-gray-900">${code}</h4>
+                            <p class="text-sm text-gray-600">${data.name}</p>
+                            <p class="text-xs text-gray-500">${data.email}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            engineerList.innerHTML = engineerHtml;
+        }
+
+        function displayHubs() {
+            if (!dataManager) return;
+            
+            const hubList = document.getElementById('hubList');
+            const hubCount = document.getElementById('hubCount');
+            
+            if (!hubList || !hubCount) return;
+            
+            const hubs = Object.entries(dataManager.hubData);
+            hubCount.textContent = `${hubs.length} hubs`;
+            
+            if (hubs.length === 0) {
+                hubList.innerHTML = '<div class="p-4 bg-gray-100 rounded-lg text-center text-gray-500">No hubs found</div>';
+                return;
+            }
+            
+            const hubHtml = hubs.map(([name, data]) => `
+                <div class="p-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium text-gray-900">${name}</h4>
+                            <p class="text-sm text-gray-600">${data.email}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            hubList.innerHTML = hubHtml;
+        }
+
+        function updateEngineerDropdown() {
+            if (!dataManager) return;
+            
+            const engCodeSelect = document.getElementById('engCode');
+            if (!engCodeSelect) return;
+            
+            // Clear existing options except the first one
+            engCodeSelect.innerHTML = '<option value="">Select engineer code</option>';
+            
+            // Add engineer options
+            Object.entries(dataManager.engineerData).forEach(([code, data]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = `${code} - ${data.name}`;
+                engCodeSelect.appendChild(option);
+            });
+        }
+
+        function updateHubDropdown() {
+            if (!dataManager) return;
+            
+            const hubSelect = document.getElementById('fromHub');
+            if (!hubSelect) return;
+            
+            // Clear existing options except the first one
+            hubSelect.innerHTML = '<option value="">Select hub</option>';
+            
+            // Add hub options
+            Object.keys(dataManager.hubData).forEach(hubName => {
+                const option = document.createElement('option');
+                option.value = hubName;
+                option.textContent = hubName;
+                hubSelect.appendChild(option);
+            });
+        }
+
+        function filterSprs() {
+            // Implement SPR filtering functionality
+            console.log('Filtering SPRs...');
+        }
+
+        function showMessage(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+            };
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-in`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${icons[type]}
+                    </svg>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, type === 'error' ? 5000 : 3000);
+        }
+
+        // ===========================================
+        // CSV IMPORT FUNCTIONS
+        // ===========================================
+        
+        async function importEngineersCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const lines = text.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                let imported = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    if (values.length >= 3 && values[0] && values[1] && values[2]) {
+                        try {
+                            await dataManager.addEngineer(values[0], values[1], values[2]);
+                            imported++;
+                        } catch (error) {
+                            console.warn(`Failed to import engineer ${values[0]}:`, error.message);
+                        }
+                    }
+                }
+                
+                dataManager.showSuccessMessage(`Imported ${imported} engineers successfully!`);
+                displayEngineers();
+                updateEngineerDropdown();
+                
+            } catch (error) {
+                dataManager.handleError('Failed to import engineers CSV', error);
+            }
+            
+            event.target.value = '';
+        }
+
+        async function importHubsCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const lines = text.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                let imported = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                    if (values.length >= 2 && values[0] && values[1]) {
+                        try {
+                            await dataManager.addHub(values[0], values[1]);
+                            imported++;
+                        } catch (error) {
+                            console.warn(`Failed to import hub ${values[0]}:`, error.message);
+                        }
+                    }
+                }
+                
+                dataManager.showSuccessMessage(`Imported ${imported} hubs successfully!`);
+                displayHubs();
+                updateHubDropdown();
+                
+            } catch (error) {
+                dataManager.handleError('Failed to import hubs CSV', error);
+            }
+            
+            event.target.value = '';
+        }
+
+        function downloadSampleCSV() {
+            const engineerCSV = 'Code,Name,Email\nENG001,John Smith,john.smith@panexpress.com\nENG002,Jane Doe,jane.doe@panexpress.com';
+            const hubCSV = 'Name,Email\nMain Hub,main@panexpress.com\nSecondary Hub,secondary@panexpress.com';
+            
+            // Create a zip-like structure by downloading both files
+            dataManager.downloadFile(engineerCSV, 'sample_engineers.csv', 'text/csv');
+            setTimeout(() => {
+                dataManager.downloadFile(hubCSV, 'sample_hubs.csv', 'text/csv');
+            }, 1000);
+            
+            dataManager.showSuccessMessage('Sample CSV files downloaded!');
+        }
+
+        async function testDatabaseConnection() {
+            try {
+                dataManager.showMessage('Testing database connection...', 'info');
+                
+                const { data, error } = await supabase.from('engineers').select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                dataManager.showSuccessMessage('Database connection test successful!');
+                dataManager.updateRecentActivity('Database connection test passed');
+                
+            } catch (error) {
+                dataManager.handleError('Database connection test failed', error);
+            }
+        }
+
+        async function handleBackupRestore(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const backupData = JSON.parse(text);
+                
+                if (!backupData.data || !backupData.data.sprRequests) {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                // This would require careful implementation to restore data
+                dataManager.showMessage('Backup restore feature is under development', 'info');
+                
+            } catch (error) {
+                dataManager.handleError('Failed to restore backup', error);
+            }
+            
+            event.target.value = '';
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa666cf650536e',t:'MTc2MDY0NzUyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
