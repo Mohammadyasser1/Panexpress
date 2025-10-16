@@ -2291,29 +2291,71 @@
             if (!file) return;
             
             try {
+                showMessage('Importing engineers...', 'info');
                 const text = await file.text();
                 const lines = text.split('\n').filter(line => line.trim());
-                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                if (lines.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+                console.log('CSV Headers:', headers);
+                
+                // Find column indices
+                const codeIndex = headers.findIndex(h => h.includes('code') || h === 'engineer code' || h === 'eng code');
+                const nameIndex = headers.findIndex(h => h.includes('name') || h === 'engineer name');
+                const emailIndex = headers.findIndex(h => h.includes('email') || h.includes('mail'));
+                
+                if (codeIndex === -1 || nameIndex === -1 || emailIndex === -1) {
+                    throw new Error('CSV must contain Code, Name, and Email columns');
+                }
                 
                 let imported = 0;
+                let skipped = 0;
+                
                 for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
-                    if (values.length >= 3 && values[0] && values[1] && values[2]) {
-                        try {
-                            await dataManager.addEngineer(values[0], values[1], values[2]);
-                            imported++;
-                        } catch (error) {
-                            console.warn(`Failed to import engineer ${values[0]}:`, error.message);
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Better CSV parsing to handle commas in quoted fields
+                    const values = parseCSVLine(line);
+                    
+                    if (values.length > Math.max(codeIndex, nameIndex, emailIndex)) {
+                        const code = values[codeIndex]?.trim();
+                        const name = values[nameIndex]?.trim();
+                        const email = values[emailIndex]?.trim();
+                        
+                        if (code && name && email) {
+                            try {
+                                await dataManager.addEngineer(code, name, email);
+                                imported++;
+                                console.log(`Imported engineer: ${code} - ${name}`);
+                            } catch (error) {
+                                console.warn(`Failed to import engineer ${code}:`, error.message);
+                                skipped++;
+                            }
+                        } else {
+                            console.warn(`Skipping row ${i}: missing required data`, { code, name, email });
+                            skipped++;
                         }
+                    } else {
+                        console.warn(`Skipping row ${i}: insufficient columns`);
+                        skipped++;
                     }
                 }
                 
-                dataManager.showSuccessMessage(`Imported ${imported} engineers successfully!`);
+                // Refresh displays
+                await dataManager.loadAllData();
                 displayEngineers();
                 updateEngineerDropdown();
                 
+                const message = `Import complete! ${imported} engineers imported${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+                showMessage(message, 'success');
+                
             } catch (error) {
-                dataManager.handleError('Failed to import engineers CSV', error);
+                console.error('Import error:', error);
+                showMessage(`Import failed: ${error.message}`, 'error');
             }
             
             event.target.value = '';
@@ -2324,32 +2366,105 @@
             if (!file) return;
             
             try {
+                showMessage('Importing hubs...', 'info');
                 const text = await file.text();
                 const lines = text.split('\n').filter(line => line.trim());
-                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                if (lines.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+                console.log('CSV Headers:', headers);
+                
+                // Find column indices
+                const nameIndex = headers.findIndex(h => h.includes('name') || h === 'hub name' || h === 'hub');
+                const emailIndex = headers.findIndex(h => h.includes('email') || h.includes('mail'));
+                
+                if (nameIndex === -1 || emailIndex === -1) {
+                    throw new Error('CSV must contain Name and Email columns');
+                }
                 
                 let imported = 0;
+                let skipped = 0;
+                
                 for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
-                    if (values.length >= 2 && values[0] && values[1]) {
-                        try {
-                            await dataManager.addHub(values[0], values[1]);
-                            imported++;
-                        } catch (error) {
-                            console.warn(`Failed to import hub ${values[0]}:`, error.message);
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Better CSV parsing to handle commas in quoted fields
+                    const values = parseCSVLine(line);
+                    
+                    if (values.length > Math.max(nameIndex, emailIndex)) {
+                        const name = values[nameIndex]?.trim();
+                        const email = values[emailIndex]?.trim();
+                        
+                        if (name && email) {
+                            try {
+                                await dataManager.addHub(name, email);
+                                imported++;
+                                console.log(`Imported hub: ${name}`);
+                            } catch (error) {
+                                console.warn(`Failed to import hub ${name}:`, error.message);
+                                skipped++;
+                            }
+                        } else {
+                            console.warn(`Skipping row ${i}: missing required data`, { name, email });
+                            skipped++;
                         }
+                    } else {
+                        console.warn(`Skipping row ${i}: insufficient columns`);
+                        skipped++;
                     }
                 }
                 
-                dataManager.showSuccessMessage(`Imported ${imported} hubs successfully!`);
+                // Refresh displays
+                await dataManager.loadAllData();
                 displayHubs();
                 updateHubDropdown();
                 
+                const message = `Import complete! ${imported} hubs imported${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+                showMessage(message, 'success');
+                
             } catch (error) {
-                dataManager.handleError('Failed to import hubs CSV', error);
+                console.error('Import error:', error);
+                showMessage(`Import failed: ${error.message}`, 'error');
             }
             
             event.target.value = '';
+        }
+
+        // Helper function to properly parse CSV lines with quoted fields
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        // Escaped quote
+                        current += '"';
+                        i++; // Skip next quote
+                    } else {
+                        // Toggle quote state
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    // Field separator
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            // Add the last field
+            result.push(current.trim());
+            
+            return result;
         }
 
         function downloadSampleCSV() {
@@ -2405,5 +2520,5 @@
             event.target.value = '';
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa666cf650536e',t:'MTc2MDY0NzUyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa6bd0f664536e',t:'MTc2MDY0Nzc0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
