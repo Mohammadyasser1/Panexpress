@@ -2060,6 +2060,8 @@
                 if (!sprData.awbNumber || sprData.awbNumber.trim() === '') {
                     throw new Error('AWB Number is required');
                 }
+                
+                // Note: SPR numbers are allowed to be duplicates - no uniqueness check
 
                 // Create or update SPR in database
                 if (isEditing) {
@@ -2219,4 +2221,5 @@
                                 ✏️ Edit
                             </button>
                             <button onclick="toggleSprStatus('${spr.id}')" 
-                                class="px-4 py-2 text-sm rounded-lg transition-colors ${spr.status === 'completed' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa2065b110536e',t:'MTc2MDY0NDY2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                                class="px-4 py-2 text-sm rounded-lg transition-colors ${spr.status === 'completed' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa237786a01988',t:'MTc2MDY0NDc4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
