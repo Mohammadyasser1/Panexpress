@@ -649,7 +649,7 @@
                     <li>• <strong>Flexible headers:</strong> "SPR Number" or "spr_number" or "SPR"</li>
                     <li>• <strong>Date formats:</strong> MM/DD/YYYY, YYYY-MM-DD, or ISO format</li>
                 </ul>
-                <p class="mt-2 text-green-600">✅ All SPRs will be added. Duplicate SPR numbers are allowed.</p>
+                <p class="mt-2 text-green-600">✅ All SPRs will be imported. Duplicate SPR numbers are fully allowed.</p>
             </div>
             <div class="flex justify-end space-x-3">
                 <button onclick="closeImportModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
@@ -1504,7 +1504,7 @@
                     await this.loadAllData();
                     this.showSuccessMessage('Data refreshed successfully!');
                     this.updateRecentActivity('Refreshed all data from database');
-                    document.getElementById('lastSyncTime').textContent = new Date().toLocaleTimeString();
+                    document.getElementById('lastSyncTime').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
                 } catch (error) {
                     this.handleError('Failed to refresh data', error);
                 }
@@ -1557,7 +1557,7 @@
                         <div class="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
                         <span class="text-sm text-gray-700">${activity}</span>
                     </div>
-                    <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+                    <span class="text-xs text-gray-500">${new Date().toLocaleTimeString('en-GB', { hour12: false })}</span>
                 `;
 
                 // Clear loading message if present
@@ -1700,6 +1700,26 @@
         let engineerData = {};
         let hubData = {};
         let sprRequests = [];
+
+        // Date formatting functions
+        function formatDateTime(dateString) {
+            if (!dateString) return 'Not set';
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        function formatDateTime24(dateString) {
+            if (!dateString) return 'Not set';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-GB', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+        }
 
         function initializeApp() {
             dataManager = new DataManager();
@@ -2222,4 +2242,4 @@
                             </button>
                             <button onclick="toggleSprStatus('${spr.id}')" 
                                 class="px-4 py-2 text-sm rounded-lg transition-colors ${spr.status === 'completed' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa237786a01988',t:'MTc2MDY0NDc4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98fa28ebc76a1988',t:'MTc2MDY0NTAwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
